@@ -11,7 +11,7 @@ interface AgentState {
     files: { [path: string]: string };
 }
 
-export const codeAgent = inngest.createFunction(
+export const codeAgentFunction = inngest.createFunction(
     { id: "code-agent" },
     { event: "code-agent/run" },
     async ({ event, step }) => {
