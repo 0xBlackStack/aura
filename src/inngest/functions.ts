@@ -27,7 +27,7 @@ export const codeAgentFunction = inngest.createFunction(
             description: "An expert coding agent",
             system: PROMPT,
             model: gemini({
-                model: "gemini-2.5-pro"
+                model: "gemini-2.0-flash"
             }),
             tools: [
                 createTool({
@@ -76,16 +76,16 @@ export const codeAgentFunction = inngest.createFunction(
                     handler: async ({ files }, { step, network }) => {
                         const newFiles = await step?.run("createOrUpdateFiles", async () => {
                             try {
-                                const updatedFiles = network.state.data.files || [];
+                                const updatedFiles = { ...(network.state.data.files || {}) };
                                 const sandbox = await getSandbox(sandboxId);
 
                                 for (const file of files) {
                                     await sandbox.files.write(file.path, file.content);
-
-                                    updatedFiles[file.path] = file.content;
+                                    updatedFiles[file.path] = file.content;    // 🆕 actually assign each file
                                 }
 
-                                return updatedFiles;
+                                return updatedFiles;                         // 🧹 cleaner, simpler
+
                             } catch (e) {
                                 return `Failed to create or update files: ${e}`;
                             }
@@ -158,6 +158,14 @@ export const codeAgentFunction = inngest.createFunction(
 
         const isError = !result.state.data.summary || Object.keys(result.state.data.files || {}).length === 0;
 
+        console.log(`
+            Summary : ${result.state.data.summary}
+
+            Files : ${JSON.stringify(result.state.data.files, null, 2)}
+
+            Files Count : ${Object.keys(result.state.data.files || {}).length}
+            `)
+
         const sandboxUrl = await step.run("get-sandbox-url", async () => {
             const sandbox = await getSandbox(sandboxId);
             const host = sandbox.getHost(3000);
@@ -168,6 +176,7 @@ export const codeAgentFunction = inngest.createFunction(
             if (isError) {
                 return await prisma.message.create({
                     data: {
+                        projectId: event.data.projectId,
                         content: "Something went wrong while processing the request. Please try again.",
                         role: "ASSISTANT",
                         type: "ERROR",
@@ -177,6 +186,7 @@ export const codeAgentFunction = inngest.createFunction(
 
             return await prisma.message.create({
                 data: {
+                    projectId: event.data.projectId,
                     content: result.state.data.summary || "No summary generated",
                     role: "ASSISTANT",
                     type: "RESULT",
