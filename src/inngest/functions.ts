@@ -1,14 +1,47 @@
 import { inngest } from "./client";
-import { createAgent, createTool, createNetwork, gemini, Tool } from "@inngest/agent-kit";
+import { createAgent, createTool, createNetwork, Tool } from "@inngest/agent-kit";
 import { Sandbox } from "@e2b/code-interpreter"
 import { getSandbox, lastAssistantTextMessageContent } from "./utils";
 import z from "zod";
 import { PROMPT } from "@/prompt";
 import { prisma } from "@/lib/db";
 
+// import { openai } from "@inngest/agent-kit";
+import { gemini } from "inngest";
+
+// const model = openai({
+//     model: "mistralai/mistral-small-3.2-24b-instruct:free", // any OpenRouter model
+//     baseUrl: "https://openrouter.ai/api/v1", // 👈 custom base URL
+//     apiKey: process.env.OPENROUTER_API_KEY,  // 👈 your OpenRouter key
+// });
+
 interface AgentState {
     summary: string;
     files: { [path: string]: string };
+}
+
+const GEMINI_KEYS = [
+    process.env.GEMINI_API_KEY_1,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GEMINI_API_KEY_5,
+    process.env.GEMINI_API_KEY_6,
+    process.env.GEMINI_API_KEY_7,
+    process.env.GEMINI_API_KEY_8,
+    process.env.GEMINI_API_KEY_9,
+    process.env.GEMINI_API_KEY_10,
+    process.env.GEMINI_API_KEY_11,
+    process.env.GEMINI_API_KEY_12,
+    process.env.GEMINI_API_KEY_13,
+];
+
+let requestCount = 0;
+
+function getRotatingGeminiKey() {
+    const index = Math.floor(requestCount / 2) % GEMINI_KEYS.length;
+    requestCount++;
+    return GEMINI_KEYS[index];
 }
 
 export const codeAgentFunction = inngest.createFunction(
@@ -27,7 +60,8 @@ export const codeAgentFunction = inngest.createFunction(
             description: "An expert coding agent",
             system: PROMPT,
             model: gemini({
-                model: "gemini-2.0-flash"
+                apiKey: getRotatingGeminiKey(),
+                model: "gemini-2.5-flash",
             }),
             tools: [
                 createTool({
