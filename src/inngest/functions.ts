@@ -38,30 +38,44 @@ const GEMINI_KEYS = [
 
 let requestCount = 0;
 
+const MODEL_SEQUENCE = [
+    "gemini-2.0-flash",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+];
+
 function getRotatingGeminiKey() {
     const index = Math.floor(requestCount / 2) % GEMINI_KEYS.length;
     requestCount++;
     return GEMINI_KEYS[index];
 }
 
+function getAlternatingGeminiModel() {
+    const index = requestCount % MODEL_SEQUENCE.length;
+    return MODEL_SEQUENCE[index];
+}
+
 export const codeAgentFunction = inngest.createFunction(
     { id: "code-agent" },
     { event: "code-agent/run" },
     async ({ event, step }) => {
-        console.log(event.data)
+        console.log(event.data);
 
         const sandboxId = await step.run("get-sandbox-id", async () => {
             const sandbox = await Sandbox.create("aura-test-project");
             return sandbox.sandboxId;
         });
 
+        const modelName = getAlternatingGeminiModel();
+        const apiKey = getRotatingGeminiKey();
+
         const codeAgent = createAgent<AgentState>({
             name: "code-agent",
             description: "An expert coding agent",
             system: PROMPT,
             model: gemini({
-                apiKey: getRotatingGeminiKey(),
-                model: "gemini-2.5-flash",
+                apiKey,
+                model: modelName,
             }),
             tools: [
                 createTool({
