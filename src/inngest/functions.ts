@@ -7,12 +7,12 @@ import { PROMPT } from "@/prompt";
 import { prisma } from "@/lib/db";
 
 // import { openai } from "@inngest/agent-kit";
-import { gemini } from "inngest";
+import { openai } from "inngest";
 
 // const model = openai({
 //     model: "mistralai/mistral-small-3.2-24b-instruct:free", // any OpenRouter model
 //     baseUrl: "https://openrouter.ai/api/v1", // 👈 custom base URL
-//     apiKey: process.env.OPENROUTER_API_KEY,  // 👈 your OpenRouter key
+//     apiKey: process.env.OPENROUTER_API_KEY,  // 👈 your OpenRouter key,
 // });
 
 interface AgentState {
@@ -20,40 +20,57 @@ interface AgentState {
     files: { [path: string]: string };
 }
 
-const GEMINI_KEYS = [
-    process.env.GEMINI_API_KEY_1,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GEMINI_API_KEY_5,
-    process.env.GEMINI_API_KEY_6,
-    process.env.GEMINI_API_KEY_7,
-    process.env.GEMINI_API_KEY_8,
-    process.env.GEMINI_API_KEY_9,
-    process.env.GEMINI_API_KEY_10,
-    process.env.GEMINI_API_KEY_11,
-    process.env.GEMINI_API_KEY_12,
-    process.env.GEMINI_API_KEY_13,
+// const GEMINI_KEYS = [
+//     process.env.GEMINI_API_KEY_1,
+//     process.env.GEMINI_API_KEY_2,
+//     process.env.GEMINI_API_KEY_3,
+//     process.env.GEMINI_API_KEY_4,
+//     process.env.GEMINI_API_KEY_5,
+//     process.env.GEMINI_API_KEY_6,
+//     process.env.GEMINI_API_KEY_7,
+//     process.env.GEMINI_API_KEY_8,
+//     process.env.GEMINI_API_KEY_9,
+//     process.env.GEMINI_API_KEY_10,
+//     process.env.GEMINI_API_KEY_11,
+//     process.env.GEMINI_API_KEY_12,
+//     process.env.GEMINI_API_KEY_13,
+// ];
+
+// let requestCount = 0;
+
+// const MODEL_SEQUENCE = [
+//     "gemini-2.0-flash",
+//     "gemini-2.5-pro",
+//     "gemini-2.5-flash",
+// ];
+
+// function getRotatingGeminiKey() {
+//     const index = Math.floor(requestCount / 2) % GEMINI_KEYS.length;
+//     requestCount++;
+//     return GEMINI_KEYS[index];
+// }
+
+// function getAlternatingGeminiModel() {
+//     const index = requestCount % MODEL_SEQUENCE.length;
+//     return MODEL_SEQUENCE[index];
+// }
+
+
+const MODELS = [
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
 ];
 
-let requestCount = 0;
+let modelIndex = 0;
 
-const MODEL_SEQUENCE = [
-    "gemini-2.0-flash",
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-];
-
-function getRotatingGeminiKey() {
-    const index = Math.floor(requestCount / 2) % GEMINI_KEYS.length;
-    requestCount++;
-    return GEMINI_KEYS[index];
+function getNextModel() {
+    const model = MODELS[modelIndex];
+    modelIndex = (modelIndex + 1) % MODELS.length;
+    return model;
 }
 
-function getAlternatingGeminiModel() {
-    const index = requestCount % MODEL_SEQUENCE.length;
-    return MODEL_SEQUENCE[index];
-}
 
 export const codeAgentFunction = inngest.createFunction(
     { id: "code-agent" },
@@ -66,16 +83,17 @@ export const codeAgentFunction = inngest.createFunction(
             return sandbox.sandboxId;
         });
 
-        const modelName = getAlternatingGeminiModel();
-        const apiKey = getRotatingGeminiKey();
+        // const modelName = getAlternatingGeminiModel();
+        // const apiKey = getRotatingGeminiKey();
 
         const codeAgent = createAgent<AgentState>({
             name: "code-agent",
             description: "An expert coding agent",
             system: PROMPT,
-            model: gemini({
-                apiKey,
-                model: modelName,
+            model: openai({
+                baseUrl: "https://api.groq.com/openai/v1",
+                apiKey: process.env.GROQ || "",
+                model: getNextModel(),
             }),
             tools: [
                 createTool({
