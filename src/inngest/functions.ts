@@ -92,7 +92,7 @@ export const codeAgentFunction = inngest.createFunction(
             system: PROMPT,
             model: openai({
                 baseUrl: "https://api.groq.com/openai/v1",
-                apiKey: "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",
+                apiKey: process.env.GROQ || "",
                 model: getNextModel(),
             }),
             tools: [
