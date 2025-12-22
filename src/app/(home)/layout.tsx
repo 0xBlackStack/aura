@@ -1,3 +1,5 @@
+import { NavBar } from "@/modules/home/ui/components/navbar";
+
 interface Props {
     children: React.ReactNode;
 }
@@ -5,6 +7,7 @@ interface Props {
 const Layout = ({ children }: Props) => {
     return (
         <main className="relative min-h-screen overflow-hidden">
+            <NavBar />
             {/* Background */}
             <div
                 className="

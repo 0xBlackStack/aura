@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
 import { PROJECT_TEMPLATES } from "../../constants";
+import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
     value: z.string().min(1, { message: "Message cannot be empty" }).max(10000, { message: "Message is too long" }),
@@ -24,6 +25,7 @@ export const ProjectForm = () => {
     const router = useRouter();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
+    const clerk = useClerk();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -41,6 +43,10 @@ export const ProjectForm = () => {
         },
         onError: (error) => {
             toast.error(error.message);
+
+            if (error.data?.code === "UNAUTHORIZED") {
+                clerk.openSignIn();
+            }
         }
     }));
 
