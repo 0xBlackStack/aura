@@ -11,6 +11,7 @@ import { CodeIcon, CrownIcon, DownloadIcon, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FileExplorer } from "@/components/file-explorer";
+import { UserControl } from "@/components/user-control";
 
 export const ProjectView = ({ projectId }: { projectId: string }) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
@@ -74,6 +75,7 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                                         <CrownIcon size={16} /> Upgrade
                                     </Link>
                                 </Button>
+                                <UserControl />
                             </div>
                         </div>
 
