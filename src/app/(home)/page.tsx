@@ -31,6 +31,7 @@ export default function Home() {
       </section>
 
       <ProjectsList />
+      <br />
     </div>
   );
 }

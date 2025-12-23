@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FileExplorer } from "@/components/file-explorer";
 import { UserControl } from "@/components/user-control";
+import { useAuth } from "@clerk/nextjs";
 
 export const ProjectView = ({ projectId }: { projectId: string }) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
@@ -62,19 +63,15 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                             </TabsList>
 
                             <div className="ml-auto flex items-center gap-x-2">
-                                <Button asChild size={"sm"} variant="outline">
-                                    <Link href="/download">
-                                        <DownloadIcon size={16} /> Download
-                                    </Link>
-                                </Button>
-                                <p>
-                                    |
-                                </p>
-                                <Button asChild size="sm" variant="default">
-                                    <Link href="/pricing">
-                                        <CrownIcon size={16} /> Upgrade
-                                    </Link>
-                                </Button>
+                                {
+                                    <Button asChild size="sm" variant="tertiary">
+                                        <Link href="/pricing">
+                                            {
+                                                useAuth().has?.({ plan: 'pro' }) ? <><DownloadIcon /> Download</> : <><CrownIcon size={16} className="inline-block mr-1" /> Upgrade</>
+                                            }
+                                        </Link>
+                                    </Button>
+                                }
                                 <UserControl />
                             </div>
                         </div>
