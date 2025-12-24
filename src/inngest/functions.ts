@@ -1,9 +1,9 @@
 import { inngest } from "./client";
-import { createAgent, createTool, createNetwork, Tool } from "@inngest/agent-kit";
+import { createAgent, createTool, createNetwork, Tool, Message, createState } from "@inngest/agent-kit";
 import { Sandbox } from "@e2b/code-interpreter"
 import { getSandbox, lastAssistantTextMessageContent } from "./utils";
 import z from "zod";
-import { PROMPT } from "@/prompt";
+import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { prisma } from "@/lib/db";
 
 // import { openai } from "@inngest/agent-kit";
@@ -81,6 +81,39 @@ export const codeAgentFunction = inngest.createFunction(
         const sandboxId = await step.run("get-sandbox-id", async () => {
             const sandbox = await Sandbox.create("aura-test-project");
             return sandbox.sandboxId;
+        });
+
+        const previousMessages = await step.run("get-previous-messages", async () => {
+            const formtedMessages: Message[] = [];
+
+            const messages = await prisma.message.findMany({
+                where: {
+                    project: {
+                        id: event.data.projectId,
+                    },
+                },
+                orderBy: {
+                    createdAt: 'asc',
+                }
+            });
+
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                formtedMessages.push({
+                    role: message.role === "ASSISTANT" ? "assistant" : "user",
+                    content: `${i}. ${message.role === "ASSISTANT" ? "Assistant" : "User"}: ${message.content}`, //Message Count, Message BY, MEssage
+                    type: "text",
+                })
+            }
+
+            return formtedMessages;
+        })
+
+        const state = createState<AgentState>({
+            summary: "",
+            files: {},
+        }, {
+            messages: previousMessages,
         });
 
         // const modelName = getAlternatingGeminiModel();
@@ -209,6 +242,7 @@ export const codeAgentFunction = inngest.createFunction(
             name: "coding-agent-network",
             agents: [codeAgent],
             maxIter: 15,
+            defaultState: state,
             router: async ({ network }) => {
                 const summary = network.state.data.summary;
 
@@ -220,7 +254,35 @@ export const codeAgentFunction = inngest.createFunction(
             }
         })
 
-        const result = await network.run(event.data.value);
+        const result = await network.run(event.data.value, {
+            state
+        });
+
+        const fragmentTitleGenerator = createAgent({
+            name: "fragment-title-generator",
+            description: "A fragment title generator agent.",
+            system: FRAGMENT_TITLE_PROMPT,
+            model: openai({
+                baseUrl: "https://api.groq.com/openai/v1",
+                apiKey: process.env.GROQ || "",
+                model: getNextModel(),
+            }),
+        });
+
+        const responseGenerator = createAgent({
+            name: "response-generator",
+            description: "A response generator agent.",
+            system: RESPONSE_PROMPT,
+            model: openai({
+                baseUrl: "https://api.groq.com/openai/v1",
+                apiKey: process.env.GROQ || "",
+                model: getNextModel(),
+            }),
+        });
+
+        const { output: fragmentTitle } = await fragmentTitleGenerator.run(result.state.data.summary);
+
+        const { output: response } = await responseGenerator.run(result.state.data.summary);
 
         const isError = !result.state.data.summary || Object.keys(result.state.data.files || {}).length === 0;
 
@@ -251,16 +313,30 @@ export const codeAgentFunction = inngest.createFunction(
                 })
             }
 
+            const genrateInfo = (output: Message[]) => {
+                const value = output[0];
+
+                if (value.type !== "text") {
+                    return "No summary generated";
+                }
+
+                if (Array.isArray(value.content)) {
+                    return value.content.map((txt) => txt).join("");
+                } else {
+                    return value.content;
+                }
+            }
+
             return await prisma.message.create({
                 data: {
                     projectId: event.data.projectId,
-                    content: result.state.data.summary || "No summary generated",
+                    content: genrateInfo(response) || "No summary generated",
                     role: "ASSISTANT",
                     type: "RESULT",
                     fragment: {
                         create: {
                             sandboxUrl: sandboxUrl,
-                            title: "Fragment",
+                            title: genrateInfo(fragmentTitle),
                             files: result.state.data.files,
                         }
                     }
