@@ -8,6 +8,7 @@ import { consumeCredit } from "@/lib/usage";
 
 export const projectsRouter = createTRPCRouter({
     getOne: protectedProcedure
+
         .input(
             z.object({
                 id: z.string().min(1, { message: "Project ID cannot be empty" }),

@@ -59,8 +59,9 @@ interface AgentState {
 const MODELS = [
     "openai/gpt-oss-120b",
     "llama-3.3-70b-versatile",
-    "llama-3.3-70b-versatile",
     "openai/gpt-oss-120b",
+    "llama-3.3-70b-versatile",
+    "moonshotai/kimi-k2-instruct-0905"
 ];
 
 let modelIndex = 0;
@@ -80,34 +81,38 @@ export const codeAgentFunction = inngest.createFunction(
 
         const sandboxId = await step.run("get-sandbox-id", async () => {
             const sandbox = await Sandbox.create("aura-test-project");
+            await sandbox.setTimeout(60_000 * 10 * 3)
             return sandbox.sandboxId;
         });
 
-        const previousMessages = await step.run("get-previous-messages", async () => {
-            const formtedMessages: Message[] = [];
+        const previousMessages = await step.run(
+            "get-previous-messages",
+            async () => {
+                const formtedMessages: Message[] = [];
 
-            const messages = await prisma.message.findMany({
-                where: {
-                    project: {
-                        id: event.data.projectId,
+                const messages = await prisma.message.findMany({
+                    where: {
+                        project: {
+                            id: event.data.projectId,
+                        },
                     },
-                },
-                orderBy: {
-                    createdAt: 'asc',
-                }
-            });
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                    take: 7,
+                });
 
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                formtedMessages.push({
-                    role: message.role === "ASSISTANT" ? "assistant" : "user",
-                    content: `${i}. ${message.role === "ASSISTANT" ? "Assistant" : "User"}: ${message.content}`, //Message Count, Message BY, MEssage
-                    type: "text",
-                })
+                messages.forEach((message, i) => {
+                    formtedMessages.push({
+                        role: message.role === "ASSISTANT" ? "assistant" : "user",
+                        content: `${i}. ${message.role === "ASSISTANT" ? "Assistant" : "User"}: ${message.content}`,
+                        type: "text",
+                    });
+                });
+
+                return formtedMessages.reverse(); // 👈 untouched, promise 🥲
             }
-
-            return formtedMessages;
-        })
+        );
 
         const state = createState<AgentState>({
             summary: "",
