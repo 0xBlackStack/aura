@@ -4,6 +4,7 @@ import { formatDuration, intervalToDuration } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
+import { useMemo } from "react";
 
 interface Props {
     points: number;
@@ -14,6 +15,23 @@ export const Usage = ({ points, msBeforeNextPoint }: Props) => {
     const { has } = useAuth();
     const hasPremiumAccess = has?.({ plan: 'pro' });
 
+    const resetTime = useMemo(() => {
+        try {
+            return formatDuration(
+                intervalToDuration({
+                    start: new Date(),
+                    end: new Date(Date.now() + msBeforeNextPoint),
+                }),
+                {
+                    format: ["days", "hours", "minutes"],
+                }
+            )
+        } catch (error) {
+            console.error("Error formatting duration:", error);
+            return "unknown duration";
+        }
+    }, [msBeforeNextPoint]);
+
     return (
         <div className="rounded-t-xl bg-background border border-b-0 p-2.5">
             <div className="flex items-center gap-x-2">
@@ -22,18 +40,7 @@ export const Usage = ({ points, msBeforeNextPoint }: Props) => {
                         {points} {hasPremiumAccess ? "" : "free"} credits available
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        Resets in{" "}
-                        {
-                            formatDuration(
-                                intervalToDuration({
-                                    start: new Date(),
-                                    end: new Date(Date.now() + msBeforeNextPoint),
-                                }),
-                                {
-                                    format: ["days", "hours", "minutes", "seconds"],
-                                }
-                            )
-                        }
+                        Resets in{" "} {resetTime}
                     </p>
                 </div>
                 {

@@ -42,7 +42,6 @@ export const ProjectForm = () => {
                 trpc.usage.status.queryOptions()
             )
             router.push(`/projects/${data.id}`);
-            // TODO : Invalidate usage status
         },
         onError: (error) => {
             toast.error(error.message);

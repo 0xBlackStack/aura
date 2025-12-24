@@ -13,6 +13,7 @@ import Link from "next/link";
 import { FileExplorer } from "@/components/file-explorer";
 import { UserControl } from "@/components/user-control";
 import { useAuth } from "@clerk/nextjs";
+import { ErrorBoundary } from "react-error-boundary";
 
 export const ProjectView = ({ projectId }: { projectId: string }) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
@@ -24,17 +25,57 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
 
                 {/* LEFT PANEL */}
                 <ResizablePanel defaultSize={20} minSize={20} className="flex flex-col min-h-0">
-                    <Suspense fallback={<p>Loading Project...</p>}>
-                        <ProjectHeader projectId={projectId} />
-                    </Suspense>
+                    <ErrorBoundary
+                        fallback={
+                            <div className="flex h-full items-center justify-center p-6 animate-fade-in">
+                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-center">
+                                    <p className="text-sm font-medium text-red-400">
 
-                    <Suspense fallback={<p>Loading messages...</p>}>
-                        <MessageContainer
-                            projectId={projectId}
-                            activeFragment={activeFragment}
-                            setActiveFragment={setActiveFragment}
-                        />
-                    </Suspense>
+                                        Something went wrong. Please try again later.
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    >
+                        <Suspense
+                            fallback={
+                                <div className="flex items-center justify-center p-4 animate-pulse">
+                                    <p className="text-sm text-muted-foreground">
+                                        Loading Project…
+                                    </p>
+                                </div>
+                            }
+                        >
+                            <ProjectHeader projectId={projectId} />
+                        </Suspense>
+                    </ErrorBoundary>
+
+                    <ErrorBoundary
+                        fallback={
+                            <div className="flex h-full items-center justify-center p-6 animate-fade-in">
+                                <p className="rounded-lg bg-muted px-4 py-2 text-sm text-muted-foreground">
+                                    Failed to load messages.
+                                </p>
+                            </div>
+                        }
+                    >
+                        <Suspense
+                            fallback={
+                                <div className="flex items-center justify-center p-6 animate-pulse">
+                                    <p className="text-sm text-muted-foreground">
+                                        Loading messages…
+                                    </p>
+                                </div>
+                            }
+                        >
+                            <MessageContainer
+                                projectId={projectId}
+                                activeFragment={activeFragment}
+                                setActiveFragment={setActiveFragment}
+                            />
+                        </Suspense>
+                    </ErrorBoundary>
+
                 </ResizablePanel>
 
                 <ResizableHandle withHandle />
