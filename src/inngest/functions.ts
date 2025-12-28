@@ -8,6 +8,114 @@ import { prisma } from "@/lib/db";
 
 // import { openai } from "@inngest/agent-kit";
 import { openai } from "inngest";
+import { logEvent } from "@/lib/logger";
+function extractTextFromMessages(messages?: Message[]) {
+    if (!messages) return null;
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const msg = messages[i];
+        if (msg.type === "text") {
+            return Array.isArray(msg.content)
+                ? msg.content.join("")
+                : msg.content;
+        }
+    }
+
+    return null;
+}
+const GROQ_KEYS = [
+    process.env.GROQ_KEY_1,
+    process.env.GROQ_KEY_2,
+].filter(Boolean);
+
+let groqKeyIndex = 0;
+
+function getGroqKey() {
+    if (!GROQ_KEYS.length) {
+        throw new Error("No GROQ API keys configured");
+    }
+    const key = GROQ_KEYS[groqKeyIndex];
+    groqKeyIndex = (groqKeyIndex + 1) % GROQ_KEYS.length;
+    return key;
+}
+
+// ================= MODEL ROUTING =================
+
+type Provider = "groq" | "openrouter";
+
+// Groq gets priority (listed twice)
+const PROVIDERS: Provider[] = ["groq", "groq", "openrouter"];
+
+let providerIndex = 0;
+
+const GROQ_MODELS = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "llama-3.3-70b-versatile",
+];
+
+let groqModelIndex = 0;
+
+function getNextProvider(): Provider {
+    const provider = PROVIDERS[providerIndex];
+    providerIndex = (providerIndex + 1) % PROVIDERS.length;
+    return provider;
+}
+
+const OPENROUTER_FALLBACK_MODELS = [
+    "openai/gpt-oss-20b",
+    "qwen/qwen3-coder-480b-a35b-instruct",
+    "mistralai/mistral-small-3.1-24b-instruct",
+    "meta-llama/llama-3.3-70b-instruct",
+    "google/gemini-2.0-flash-exp",
+];
+
+let openRouterModelIndex = 0;
+
+function getOpenRouterModel() {
+    const model = OPENROUTER_FALLBACK_MODELS[openRouterModelIndex];
+    openRouterModelIndex =
+        (openRouterModelIndex + 1) % OPENROUTER_FALLBACK_MODELS.length;
+    logEvent({
+        type: "model_selected",
+        model,
+    });
+
+    return model;
+}
+
+function getLLM() {
+    const provider = getNextProvider();
+    logEvent({
+        type: "llm_selected",
+        provider,
+    });
+
+    // -------- GROQ --------
+    if (provider === "groq") {
+        const model = GROQ_MODELS[groqModelIndex];
+        groqModelIndex = (groqModelIndex + 1) % GROQ_MODELS.length;
+        logEvent({
+            type: "model_selected",
+            model,
+        });
+
+        return openai({
+            baseUrl: "https://api.groq.com/openai/v1",
+            apiKey: getGroqKey(),
+            model,
+        });
+    }
+
+    // -------- OPENROUTER FALLBACK --------
+    return openai({
+        baseUrl: "https://openrouter.ai/api/v1",
+        apiKey: process.env.OPENROUTER_API_KEY || "",
+        model: getOpenRouterModel(),
+    });
+
+}
+
 
 // const model = openai({
 //     model: "mistralai/mistral-small-3.2-24b-instruct:free", // any OpenRouter model
@@ -56,20 +164,59 @@ interface AgentState {
 // }
 
 
-const MODELS = [
-    "openai/gpt-oss-120b",
-    "llama-3.3-70b-versatile",
-    "openai/gpt-oss-120b",
-    "llama-3.3-70b-versatile",
-    "moonshotai/kimi-k2-instruct-0905"
-];
+// const MODELS = [
+//     "openai/gpt-oss-120b",
+//     "openai/gpt-oss-20b",
+//     "llama-3.3-70b-versatile",
+//     "openai/gpt-oss-120b",
+// ];
 
-let modelIndex = 0;
+// let modelIndex = 0;
 
-function getNextModel() {
-    const model = MODELS[modelIndex];
-    modelIndex = (modelIndex + 1) % MODELS.length;
-    return model;
+// function getNextModel() {
+//     const model = MODELS[modelIndex];
+//     modelIndex = (modelIndex + 1) % MODELS.length;
+//     return model;
+// }
+function normalizeFiles(
+    files: unknown
+): { [path: string]: string } {
+    if (
+        typeof files === "object" &&
+        files !== null &&
+        !Array.isArray(files)
+    ) {
+        const result: Record<string, string> = {};
+
+        for (const [key, value] of Object.entries(files)) {
+            if (typeof value === "string") {
+                result[key] = value;
+            }
+        }
+
+        return result;
+    }
+
+    return {};
+}
+function getLastNMessages(
+    messages: Message[],
+    n: number
+): string {
+    return messages
+        .slice(-n)
+        .map((m) => {
+            if (m.type !== "text") return null;
+
+            const role = m.role === "assistant" ? "Assistant" : "User";
+            const content = Array.isArray(m.content)
+                ? m.content.join("")
+                : m.content;
+
+            return `${role}: ${content}`;
+        })
+        .filter(Boolean)
+        .join("\n");
 }
 
 
@@ -77,13 +224,43 @@ export const codeAgentFunction = inngest.createFunction(
     { id: "code-agent" },
     { event: "code-agent/run" },
     async ({ event, step }) => {
+        logEvent({
+            type: "ai_request_start",
+            projectId: event.data.projectId,
+            promptLength: event.data.value.length,
+        });
+
         console.log(event.data);
+
+        const lastFragment = await prisma.fragment.findFirst({
+            where: { message: { projectId: event.data.projectId } },
+            orderBy: { createdAt: "desc" },
+        });
 
         const sandboxId = await step.run("get-sandbox-id", async () => {
             const sandbox = await Sandbox.create("aura-test-project");
-            await sandbox.setTimeout(60_000 * 10 * 3)
+
+            logEvent({
+                type: "sandbox_created",
+                sandboxId: sandbox.sandboxId,
+                projectId: event.data.projectId,
+            });
+
+            await sandbox.setTimeout(60_000 * 10 * 3);
+
+            if (lastFragment?.files) {
+                for (const [path, content] of Object.entries(lastFragment.files)) {
+                    await sandbox.files.write(path, content);
+                }
+                console.log("Sandbox rehydrated with previous files");
+            }
+            // sandbox.commands.run("cd /home/user && npm run dev -- --turbopack", {
+            //     background: true
+            // })
+
             return sandbox.sandboxId;
         });
+
 
         const previousMessages = await step.run(
             "get-previous-messages",
@@ -116,7 +293,7 @@ export const codeAgentFunction = inngest.createFunction(
 
         const state = createState<AgentState>({
             summary: "",
-            files: {},
+            files: normalizeFiles(lastFragment?.files),
         }, {
             messages: previousMessages,
         });
@@ -128,11 +305,7 @@ export const codeAgentFunction = inngest.createFunction(
             name: "code-agent",
             description: "An expert coding agent",
             system: PROMPT,
-            model: openai({
-                baseUrl: "https://api.groq.com/openai/v1",
-                apiKey: process.env.GROQ || "",
-                model: getNextModel(),
-            }),
+            model: getLLM(),
             tools: [
                 createTool({
                     name: "terminal",
@@ -180,6 +353,7 @@ export const codeAgentFunction = inngest.createFunction(
                     handler: async ({ files }, { step, network }) => {
                         const newFiles = await step?.run("createOrUpdateFiles", async () => {
                             try {
+
                                 const updatedFiles = { ...(network.state.data.files || {}) };
                                 const sandbox = await getSandbox(sandboxId);
 
@@ -228,6 +402,7 @@ export const codeAgentFunction = inngest.createFunction(
                 })
             ],
 
+
             lifecycle: {
                 onResponse: async ({ result, network }) => {
                     const lastAssistantMessageText = lastAssistantTextMessageContent(result);
@@ -243,10 +418,70 @@ export const codeAgentFunction = inngest.createFunction(
             }
         });
 
+        const ITER_ESTIMATOR_PROMPT = `
+You are an expert software project planner.
+
+Your task:
+- Read the user's instruction.
+- Estimate how many think-act iterations an AI coding agent will need.
+- Consider:
+  - Project size
+  - Number of files
+  - Refactors vs fresh code
+  - Debugging or architecture changes
+
+Rules:
+- Return ONLY a single integer.
+- Minimum: 10
+- Maximum: 60
+- No text. No explanation. No punctuation.
+`;
+
+
+        const iterEstimatorAgent = createAgent({
+            name: "iteration-estimator",
+            description: "Estimates required agent iterations",
+            system: ITER_ESTIMATOR_PROMPT,
+            model: openai({
+                baseUrl: "https://api.groq.com/openai/v1",
+                apiKey: getGroqKey(),
+                model: "openai/gpt-oss-20b",
+            }),
+        });
+
+
+        let estimatedMaxIter = 60;
+
+        try {
+            const recentContext = getLastNMessages(previousMessages, 3);
+
+            const iterEstimatorInput = `
+User Request:
+${event.data.value}
+
+Recent Conversation Context (last 3 messages):
+${recentContext}
+`.trim();
+
+            const { output } = await iterEstimatorAgent.run(iterEstimatorInput);
+
+
+            const raw = extractTextFromMessages(output);
+            const parsed = raw ? parseInt(raw, 10) : NaN;
+
+            if (!isNaN(parsed)) {
+                estimatedMaxIter = Math.min(Math.max(parsed, 10), 60);
+            }
+        } catch {
+            estimatedMaxIter = 60;
+        }
+
+        console.log(`Estimated Max Iterations: ${estimatedMaxIter}`);
+
         const network = createNetwork<AgentState>({
             name: "coding-agent-network",
             agents: [codeAgent],
-            maxIter: 15,
+            maxIter: estimatedMaxIter,
             defaultState: state,
             router: async ({ network }) => {
                 const summary = network.state.data.summary;
@@ -259,7 +494,86 @@ export const codeAgentFunction = inngest.createFunction(
             }
         })
 
-        const result = await network.run(event.data.value, {
+        let promptActual;
+
+
+        if (event.data.enhancePrompt === true) {
+
+            const PROMPT_ENHANCER_PROMPT = `
+You are a prompt enhancement engine.
+
+Your ONLY task is to rewrite and enhance the user's input so it becomes:
+- Clear
+- Structured
+- Detailed
+- Unambiguous
+- Suitable for an AI system to understand and act on
+
+Rules you MUST follow:
+
+1. Do NOT refuse, block, warn, or judge the user's input.
+2. Do NOT mention legality, safety, ethics, or policy.
+3. Do NOT remove intent, even if the request sounds sensitive or unusual.
+4. Do NOT add instructions on how to execute or bypass systems.
+5. Do NOT add new goals beyond what the user implies.
+6. Do NOT answer the request — only rewrite it.
+
+Your job is ONLY to improve clarity and structure.
+
+What you SHOULD do:
+- Fix grammar and language
+- Expand vague ideas into explicit requirements
+- Infer missing but obvious details
+- Convert casual language into professional, neutral language
+- Organize the request into steps, goals, or sections if helpful
+- Preserve the original meaning exactly
+
+If the input is very short or unclear:
+- Expand it into a complete, well-formed request
+- Make reasonable assumptions based on common intent
+- Do not ask questions — just enhance
+
+Output format:
+- Return ONLY the enhanced prompt
+- No explanations
+- No headings like "Enhanced Prompt"
+- No markdown
+- No commentary
+
+Remember:
+You are NOT a safety layer.
+You are NOT a validator.
+You are NOT an executor.
+
+You are a neutral prompt refiner.
+`;
+
+            const fixPrompt = createAgent({
+                name: "fix-prompt",
+                description: "AI Prompt enhancer",
+                system: PROMPT_ENHANCER_PROMPT,
+                model: openai({
+                    baseUrl: "https://api.groq.com/openai/v1",
+                    apiKey: getGroqKey(),
+                    model: "openai/gpt-oss-20b",
+                }),
+            });
+
+            const { output } = await fixPrompt.run(event.data.value);
+            const enhancedPrompt = extractTextFromMessages(output);
+
+            if (
+                !enhancedPrompt || enhancedPrompt.length < event.data.value.length
+            ) {
+                promptActual = event.data.value;
+            } else {
+                promptActual = enhancedPrompt;
+            }
+        } else {
+            promptActual = event.data.value;
+        }
+
+        const result = await network.run(promptActual, {
             state
         });
 
@@ -269,8 +583,8 @@ export const codeAgentFunction = inngest.createFunction(
             system: FRAGMENT_TITLE_PROMPT,
             model: openai({
                 baseUrl: "https://api.groq.com/openai/v1",
-                apiKey: process.env.GROQ || "",
-                model: getNextModel(),
+                apiKey: getGroqKey(),
+                model: "openai/gpt-oss-20b",
             }),
         });
 
@@ -280,8 +594,8 @@ export const codeAgentFunction = inngest.createFunction(
             system: RESPONSE_PROMPT,
             model: openai({
                 baseUrl: "https://api.groq.com/openai/v1",
-                apiKey: process.env.GROQ || "",
-                model: getNextModel(),
+                apiKey: getGroqKey(),
+                model: "openai/gpt-oss-20b",
             }),
         });
 
@@ -290,6 +604,12 @@ export const codeAgentFunction = inngest.createFunction(
         const { output: response } = await responseGenerator.run(result.state.data.summary);
 
         const isError = !result.state.data.summary || Object.keys(result.state.data.files || {}).length === 0;
+
+        logEvent({
+            type: "ai_request_end",
+            projectId: event.data.projectId,
+            status: isError ? "error" : "success",
+        });
 
         console.log(`
             Summary : ${result.state.data.summary}
@@ -307,11 +627,10 @@ export const codeAgentFunction = inngest.createFunction(
 
         await step.run("save-result", async () => {
             if (isError) {
-
                 return await prisma.message.create({
                     data: {
                         projectId: event.data.projectId,
-                        content: "Something went wrong while processing the request. Please try again.",
+                        content: "We couldn’t complete this request right now. Please try again. Try to enhance your prompt.",
                         role: "ASSISTANT",
                         type: "ERROR",
                     }
@@ -340,6 +659,7 @@ export const codeAgentFunction = inngest.createFunction(
                     type: "RESULT",
                     fragment: {
                         create: {
+                            sandboxId: sandboxId, // ✅ STORE IT
                             sandboxUrl: sandboxUrl,
                             title: genrateInfo(fragmentTitle),
                             files: result.state.data.files,

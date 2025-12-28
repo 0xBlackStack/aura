@@ -14,7 +14,7 @@ const Page = () => {
                 <div className="flex flex-col items-center">
                     <Image
                         src={"/logo.png"}
-                        alt="Aura"
+                        alt="Aurix"
                         width={50}
                         height={50}
                         className="hidden md:block"
@@ -24,7 +24,7 @@ const Page = () => {
                     Pricing
                 </h1>
                 <p className="text-muted-foreground text-center text-sm md:text-base">
-                    Choose the plan that’s right for you and start building with Aura today.
+                    Choose the plan that’s right for you and start building with Aurix today.
                 </p>
                 <PricingTable
                     appearance={{

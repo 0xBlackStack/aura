@@ -49,10 +49,12 @@ model Message {
 }
 
 model Fragment {
-  id        String  @id @default(uuid())
-  messageId String  @unique
+  id String @id @default(uuid())
+
+  messageId String  @unique // ✅ THIS IS THE KEY
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
+  sandboxId  String
   sandboxUrl String
   title      String
   files      Json
@@ -65,4 +67,9 @@ model Usage {
   key    String    @id
   points Int
   expire DateTime?
+}
+
+model PromptUsage {
+  userId String @id
+  count  Int    @default(0)
 }
