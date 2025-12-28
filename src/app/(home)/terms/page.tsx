@@ -1,0 +1,170 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { toast } from "sonner";
+import SplitText from "@/components/SplitText";
+import dynamic from "next/dynamic";
+import PixelSnow from '@/components/PixelSnow';
+import "../pixelSnow.css"
+
+const TargetCursor = dynamic(
+    () => import("@/components/TargetCursor"),
+    { ssr: false }
+);
+
+
+// Component added by Ansh - github.com/ansh-dhanani
+
+import GradualBlur from '@/components/GradualBlur';
+import { useTheme } from "next-themes";
+const handleAnimationComplete = () => {
+    console.log('All letters have animated!');
+};
+
+export default function Home() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const { resolvedTheme } = useTheme();
+
+    const snowColor =
+        resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+
+
+    useEffect(() => {
+        if (
+            resolvedTheme === "light"
+        ) {
+            toast.info("We recommand to use our website in dark theme.");
+        }
+    }, []);
+    const [isSmall, setIsSmall] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsSmall(window.innerWidth < 640); // sm breakpoint
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+    const blurStrength = resolvedTheme === "light" ? 2 : 3;
+    const blurDivs = resolvedTheme === "light" ? 5 : 7;
+
+
+    return (
+        <>
+            {/* PixelSnow background */}
+            <div
+                style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 0,
+                    pointerEvents: "none",
+                }}
+            >
+                {mounted && resolvedTheme !== "light" && (
+                    <PixelSnow
+                        color={snowColor}
+                        pixelResolution={500}
+                        speed={1.4}
+                        density={0.25}
+                        flakeSize={0.013}
+                        brightness={0.8}
+                        depthFade={20}
+                        farPlane={20}
+                        direction={125}
+                        variant="square"
+                    />
+                )}
+
+            </div>
+
+            {/* Your $2M UI untouched */}
+            <section
+                style={{
+                    position: "relative",
+                    height: "100vh",
+                    overflow: "hidden",
+                    zIndex: 1,
+                }}
+            >
+                <div style={{ height: "100vh", overflowY: "auto", padding: "6rem 2rem 5rem 2rem" }}>
+                    <div>
+                        {mounted && !isSmall && resolvedTheme !== "light" && (
+                            <TargetCursor
+                                spinDuration={2}
+                                hideDefaultCursor={true}
+                                parallaxOn={false}
+                                hoverDuration={0.1}
+                            />
+                        )}
+
+
+
+                        <div className="flex flex-col max-w-5xl mx-auto w-full px-4">
+                            <section className="space-y-6 py-[16vh] pt-[1vh] 2xl:py-48">
+                                <div className="flex flex-col items-center">
+                                    <Image
+                                        src="/logo.png"
+                                        alt="Aurix"
+                                        width={75}
+                                        height={75}
+                                        className="hidden md:block"
+                                        priority
+                                    />
+                                </div>
+
+                                <div className="flex justify-center text-center">
+                                    <SplitText
+                                        text="Aurix Terms And Conditions"
+                                        className="text-2xl md:text-5xl font-bold text-center"
+                                        delay={40}
+                                        duration={0.4}
+                                        ease="power3.out"
+                                        splitType="chars"
+                                        from={{ opacity: 0, y: 40 }}
+                                        to={{ opacity: 1, y: 0 }}
+                                        threshold={0.1}
+                                        rootMargin="-100px"
+                                        textAlign="center"
+                                        onLetterAnimationComplete={handleAnimationComplete}
+                                    />
+                                </div>
+
+                                <p>
+
+                                </p>
+
+                            </section>
+
+                        </div>
+
+                        <br />
+                        <br />
+
+                        <p className="text-muted-foreground text-center">
+                            UI effects powered by ReactBits
+                        </p>
+                    </div>
+                </div>
+
+                {mounted && (
+                    <GradualBlur
+                        target="parent"
+                        position="bottom"
+                        height="6rem"
+                        strength={blurStrength}
+                        divCount={blurDivs}
+                        curve="bezier"
+                        exponential
+                        opacity={1}
+                    />
+                )}
+            </section>
+
+        </>
+    );
+}

@@ -7,17 +7,49 @@ import { Fragment } from "@/generated/prisma/client";
 import { ProjectHeader } from "../components/project-header";
 import { FragmentView } from "../components/fragment-web";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CodeIcon, CrownIcon, DownloadIcon, EyeIcon } from "lucide-react";
+import { CodeIcon, CrownIcon, DownloadCloud, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FileExplorer } from "@/components/file-explorer";
-import { UserControl } from "@/components/user-control";
+import dynamic from "next/dynamic";
+
+const UserControl = dynamic(
+    () => import("@/components/user-control").then(m => m.UserControl),
+    { ssr: false }
+);
+
 import { useAuth } from "@clerk/nextjs";
 import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
+import { trpc } from "@/trpc/react";
+
 
 export const ProjectView = ({ projectId }: { projectId: string }) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
     const [tabState, setTabState] = useState<"preview" | "code">("preview");
+    const [] = useState(false)
+
+    const { has } = useAuth()
+    const isFreePlan = has?.({ plan: "free_user" })
+
+    const downloadMutation = trpc.projects.getDownloadUrl.useMutation({
+        onSuccess: ({ url }) => {
+            window.open(url, "_blank");
+        },
+        onError: (err) => {
+            console.error(err)
+            toast.error("Download failed");
+        },
+    });
+
+    const handleDownload = () => {
+        if (!activeFragment?.sandboxId) return;
+
+        downloadMutation.mutate({
+            sandboxId: activeFragment.sandboxId,
+        });
+    };
+
 
     return (
         <div className="h-screen">
@@ -104,15 +136,24 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                             </TabsList>
 
                             <div className="ml-auto flex items-center gap-x-2">
-                                {
+                                {isFreePlan ? (
                                     <Button asChild size="sm" variant="tertiary">
                                         <Link href="/pricing">
-                                            {
-                                                useAuth().has?.({ plan: 'pro' }) ? <><DownloadIcon /> Download</> : <><CrownIcon size={16} className="inline-block mr-1" /> Upgrade</>
-                                            }
+                                            <CrownIcon size={16} className="mr-1 inline-block" />
+                                            Upgrade
                                         </Link>
                                     </Button>
-                                }
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        variant="tertiary"
+                                        onClick={handleDownload}
+                                    >
+                                        <DownloadCloud size={16} className="mr-1 inline-block" />
+                                        Download
+                                    </Button>
+                                )}
+
                                 <UserControl />
                             </div>
                         </div>
@@ -134,6 +175,10 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
 
                             )}
                         </TabsContent>
+
+                        <p className="text-muted-foreground text-center text-xs">
+                            “Aurix assists with code generation and previews. Users are responsible for reviewing, testing, and using all outputs.”
+                        </p>
 
                     </Tabs>
                 </ResizablePanel>

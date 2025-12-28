@@ -78,8 +78,8 @@ const AssistantMessage = ({
             type === "ERROR" && "text-red-700 dark:text-red-500"
         )}>
             <div className="flex items-center gap-2 pl-2 mb-2">
-                <Image src={"/logo.png"} width={18} height={18} alt="Aura" className="shrink-0" />
-                <span className="text-sm font-medium">Aura</span>
+                <Image src={"/logo.png"} width={18} height={18} alt="Aurix" className="shrink-0" />
+                <span className="text-sm font-medium">Aurix</span>
                 <span className="text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                     {format(createdAt, "HH:mm 'on' MMM dd, yyyy")}
                 </span>
