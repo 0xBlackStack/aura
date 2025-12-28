@@ -1,7 +1,7 @@
 import { UserProfile } from '@clerk/nextjs'
 import React from 'react'
 
-const userSettings = () => {
+const UserSettings = () => {
     return (
         <div>
             <UserProfile />
@@ -9,4 +9,4 @@ const userSettings = () => {
     )
 }
 
-export default userSettings
+export default UserSettings

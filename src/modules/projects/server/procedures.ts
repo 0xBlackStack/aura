@@ -121,7 +121,7 @@ export const projectsRouter = createTRPCRouter({
                 // 🔍 DEBUG STEP 1: where am I?
                 const pwd = await sandbox.commands.run(
                     "pwd && ls -la",
-                    { cwd: "/home/user", timeoutMs: 0 }
+                    { cwd: "/home/user", timeoutMs: 30000 }
                 );
 
                 console.log("PWD DEBUG:", pwd.stdout);
@@ -129,7 +129,7 @@ export const projectsRouter = createTRPCRouter({
                 // 🔍 DEBUG STEP 2: check tar
                 const whichTar = await sandbox.commands.run(
                     "which tar && tar --version",
-                    { cwd: "/home/user", timeoutMs: 0 }
+                    { cwd: "/home/user", timeoutMs: 30000 }
                 );
 
                 console.log("TAR DEBUG:", whichTar.stdout);
@@ -139,20 +139,26 @@ export const projectsRouter = createTRPCRouter({
                     "tar --ignore-failed-read -czf aurix-project.tar.gz --exclude=node_modules --exclude=.next --exclude=.git --exclude=dist --exclude=.turbo . || true",
                     {
                         cwd: "/home/user",
-                        timeoutMs: 0,
+                        timeoutMs: 120000,
                     }
                 );
 
                 const url = await sandbox.downloadUrl("/home/user/aurix-project.tar.gz");
                 return { url };
 
-            } catch (e: any) {
+            } catch (e: unknown) {
                 console.error("DOWNLOAD FAILED FULL ERROR:", e);
 
                 // 🔥 FORCE ERROR DETAILS TO CLIENT
+                let errorMsg = "";
+                if (typeof e === "object" && e !== null && "message" in e && typeof (e as { message?: unknown }).message === "string") {
+                    errorMsg = (e as { message: string }).message;
+                } else {
+                    errorMsg = JSON.stringify(e);
+                }
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: `Download failed: ${e?.message ?? e}`,
+                    message: `Download failed: ${errorMsg}`,
                 });
             }
         })

@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Project {
@@ -54,7 +53,7 @@ model Fragment {
   messageId String  @unique // ✅ THIS IS THE KEY
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-  sandboxId  String
+  sandboxId  String?
   sandboxUrl String
   title      String
   files      Json

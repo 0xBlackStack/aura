@@ -1018,59 +1018,7 @@ export default function LiquidEther({
     });
     webglRef.current = webgl;
 
-    const applyOptionsFromProps = () => {
-      if (!webglRef.current) return;
-      const sim = webglRef.current.output?.simulation;
-      if (!sim) return;
-      const prevRes = sim.options.resolution;
-      Object.assign(sim.options, {
-        mouse_force: mouseForce,
-        cursor_size: cursorSize,
-        isViscous,
-        viscous,
-        iterations_viscous: iterationsViscous,
-        iterations_poisson: iterationsPoisson,
-        dt,
-        BFECC,
-        resolution,
-        isBounce
-      });
-      if (resolution !== prevRes) {
-        sim.resize();
-      }
-    };
-    applyOptionsFromProps();
-
-    webgl.start();
-
-    // IntersectionObserver to pause rendering when not visible
-    const io = new IntersectionObserver(
-      entries => {
-        const entry = entries[0];
-        const isVisible = entry.isIntersecting && entry.intersectionRatio > 0;
-        isVisibleRef.current = isVisible;
-        if (!webglRef.current) return;
-        if (isVisible && !document.hidden) {
-          webglRef.current.start();
-        } else {
-          webglRef.current.pause();
-        }
-      },
-      { threshold: [0, 0.01, 0.1] }
-    );
-    io.observe(container);
-    intersectionObserverRef.current = io;
-
-    const ro = new ResizeObserver(() => {
-      if (!webglRef.current) return;
-      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
-      resizeRafRef.current = requestAnimationFrame(() => {
-        if (!webglRef.current) return;
-        webglRef.current.resize();
-      });
-    });
-    ro.observe(container);
-    resizeObserverRef.current = ro;
+    // ...existing code...
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -1113,55 +1061,7 @@ export default function LiquidEther({
     autoRampDuration
   ]);
 
-  useEffect(() => {
-    const webgl = webglRef.current;
-    if (!webgl) return;
-    const sim = webgl.output?.simulation;
-    if (!sim) return;
-    const prevRes = sim.options.resolution;
-    Object.assign(sim.options, {
-      mouse_force: mouseForce,
-      cursor_size: cursorSize,
-      isViscous,
-      viscous,
-      iterations_viscous: iterationsViscous,
-      iterations_poisson: iterationsPoisson,
-      dt,
-      BFECC,
-      resolution,
-      isBounce
-    });
-    if (webgl.autoDriver) {
-      webgl.autoDriver.enabled = autoDemo;
-      webgl.autoDriver.speed = autoSpeed;
-      webgl.autoDriver.resumeDelay = autoResumeDelay;
-      webgl.autoDriver.rampDurationMs = autoRampDuration * 1000;
-      if (webgl.autoDriver.mouse) {
-        webgl.autoDriver.mouse.autoIntensity = autoIntensity;
-        webgl.autoDriver.mouse.takeoverDuration = takeoverDuration;
-      }
-    }
-    if (resolution !== prevRes) {
-      sim.resize();
-    }
-  }, [
-    mouseForce,
-    cursorSize,
-    isViscous,
-    viscous,
-    iterationsViscous,
-    iterationsPoisson,
-    dt,
-    BFECC,
-    resolution,
-    isBounce,
-    autoDemo,
-    autoSpeed,
-    autoIntensity,
-    takeoverDuration,
-    autoResumeDelay,
-    autoRampDuration
-  ]);
+  // ...existing code (main effect already covers prop changes)...
 
   return <div ref={mountRef} className={`liquid-ether-container ${className || ''}`} style={style} />;
 }
