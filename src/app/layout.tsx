@@ -29,6 +29,12 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Defines the application's root HTML layout and wraps the rendered page in global providers and UI layers.
+ *
+ * @param children - The page content to render inside the app's global providers and layout.
+ * @returns The root HTML structure containing global providers, theme/toast UI, decorative ClickSpark, and the given children.
+ */
 export default function RootLayout({
   children,
 }: {

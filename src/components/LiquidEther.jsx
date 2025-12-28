@@ -2,6 +2,30 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import './LiquidEther.css';
 
+/**
+ * Render a configurable, GPU-based fluid (Navier–Stokes-like) simulation inside a container.
+ *
+ * @param {object} props - Component options.
+ * @param {number} [props.mouseForce=20] - Strength multiplier applied to user or auto-driven cursor movement.
+ * @param {number} [props.cursorSize=100] - Cursor radius in simulation pixels used for applying forces.
+ * @param {boolean} [props.isViscous=false] - Enable viscous diffusion step in the simulation.
+ * @param {number} [props.viscous=30] - Viscosity coefficient used when `isViscous` is true.
+ * @param {number} [props.iterationsViscous=32] - Iteration count for the viscous solver.
+ * @param {number} [props.iterationsPoisson=32] - Iteration count for the pressure Poisson solver.
+ * @param {number} [props.dt=0.014] - Fixed simulation timestep used by shader passes.
+ * @param {boolean} [props.BFECC=true] - Enable BFECC advection correction for reduced numerical dissipation.
+ * @param {number} [props.resolution=0.5] - Fractional resolution multiplier for internal simulation FBOs (0..1).
+ * @param {boolean} [props.isBounce=false] - Toggle bounce boundary mode (affects boundary handling).
+ * @param {string[]} [props.colors=['#5227FF','#FF9FFC','#B19EEF']] - Color stops used to build the palette texture.
+ * @param {Object} [props.style={}] - Inline styles applied to the container element.
+ * @param {string} [props.className=''] - Additional CSS class(es) for the container element.
+ * @param {boolean} [props.autoDemo=true] - Enable autonomous input driver when the user is inactive.
+ * @param {number} [props.autoSpeed=0.5] - Speed of the autonomous (auto-demo) pointer in normalized units/sec.
+ * @param {number} [props.autoIntensity=2.2] - Strength multiplier applied to auto-driven pointer deltas.
+ * @param {number} [props.takeoverDuration=0.25] - Duration (seconds) of the transition when user interaction takes control from auto-driver.
+ * @param {number} [props.autoResumeDelay=1000] - Milliseconds of inactivity before auto-driver becomes eligible to resume.
+ * @param {number} [props.autoRampDuration=0.6] - Seconds used to ramp the auto-driver's motion when it activates.
+ * @returns {JSX.Element} A div element that mounts the WebGL canvas and runs the fluid simulation.
 export default function LiquidEther({
   mouseForce = 20,
   cursorSize = 100,

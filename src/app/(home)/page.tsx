@@ -24,6 +24,13 @@ const handleAnimationComplete = () => {
   console.log('All letters have animated!');
 };
 
+/**
+ * Render the homepage with a hero, project form/list, and theme-aware visual effects.
+ *
+ * Conditionally displays a PixelSnow background, TargetCursor, and GradualBlur based on mount state, resolved theme, and viewport size; shows an informational toast when the light theme is active. Provides the main hero text, logo, ProjectForm, and ProjectsList within a scrollable full-height layout.
+ *
+ * @returns The rendered Home page JSX element
+ */
 export default function Home() {
   const [mounted, setMounted] = useState(false);
 

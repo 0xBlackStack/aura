@@ -9,6 +9,12 @@ import { prisma } from "@/lib/db";
 // import { openai } from "@inngest/agent-kit";
 import { openai } from "inngest";
 import { logEvent } from "@/lib/logger";
+/**
+ * Extracts the last textual content from a list of messages.
+ *
+ * @param messages - Optional array of messages (may include non-text types); later entries are considered more recent.
+ * @returns The content of the most recent message with `type === "text"` as a single string (concatenating array content when present), or `null` if none found.
+ */
 function extractTextFromMessages(messages?: Message[]) {
     if (!messages) return null;
 
@@ -30,6 +36,12 @@ const GROQ_KEYS = [
 
 let groqKeyIndex = 0;
 
+/**
+ * Selects the next GROQ API key from the configured rotating list.
+ *
+ * @returns The selected GROQ API key.
+ * @throws If no GROQ API keys are configured.
+ */
 function getGroqKey() {
     if (!GROQ_KEYS.length) {
         throw new Error("No GROQ API keys configured");
@@ -56,6 +68,11 @@ const GROQ_MODELS = [
 
 let groqModelIndex = 0;
 
+/**
+ * Selects the next provider from the configured PROVIDERS list using round-robin rotation.
+ *
+ * @returns The selected provider from the PROVIDERS rotation.
+ */
 function getNextProvider(): Provider {
     const provider = PROVIDERS[providerIndex];
     providerIndex = (providerIndex + 1) % PROVIDERS.length;
@@ -72,6 +89,13 @@ const OPENROUTER_FALLBACK_MODELS = [
 
 let openRouterModelIndex = 0;
 
+/**
+ * Selects the next fallback OpenRouter model identifier in round-robin order.
+ *
+ * This advances the internal rotation index and emits a `model_selected` event for telemetry.
+ *
+ * @returns The selected OpenRouter model identifier.
+ */
 function getOpenRouterModel() {
     const model = OPENROUTER_FALLBACK_MODELS[openRouterModelIndex];
     openRouterModelIndex =
@@ -84,6 +108,13 @@ function getOpenRouterModel() {
     return model;
 }
 
+/**
+ * Selects the next LLM provider and returns a configured OpenAI client for that provider.
+ *
+ * The selection is logged; when GROQ is chosen a GROQ API client is returned using a rotating model and the GROQ API key, otherwise an OpenRouter client is returned using the OpenRouter API key and a rotating fallback model.
+ *
+ * @returns A configured OpenAI-compatible client instance targeted at the selected provider and model.
+ */
 function getLLM() {
     const provider = getNextProvider();
     logEvent({
@@ -177,7 +208,12 @@ interface AgentState {
 //     const model = MODELS[modelIndex];
 //     modelIndex = (modelIndex + 1) % MODELS.length;
 //     return model;
-// }
+/**
+ * Normalize an arbitrary value into a flat map of file paths to file contents.
+ *
+ * @param files - A value that may be an object whose string-valued properties represent files; arrays, non-objects, and non-string properties are ignored.
+ * @returns An object mapping file path keys to their string contents for each string property found on `files`. Returns an empty object when no valid file entries exist.
+ */
 function normalizeFiles(
     files: unknown
 ): { [path: string]: string } {
@@ -199,6 +235,13 @@ function normalizeFiles(
 
     return {};
 }
+/**
+ * Formats the last `n` text messages into lines of "Role: content".
+ *
+ * @param messages - Array of message objects; only messages with `type === "text"` are included.
+ * @param n - Number of most recent messages to consider
+ * @returns A single string with each included message on its own line formatted as `Assistant: ...` or `User: ...`; non-text messages are omitted
+ */
 function getLastNMessages(
     messages: Message[],
     n: number

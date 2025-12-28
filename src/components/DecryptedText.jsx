@@ -18,6 +18,24 @@ const styles = {
   }
 };
 
+/**
+ * Renders text with a decrypting/scrambling reveal animation that can be triggered on hover, on view, or both.
+ *
+ * @param {Object} props - Component props.
+ * @param {string} props.text - The source text to display and reveal.
+ * @param {number} [props.speed=50] - Interval in milliseconds between scramble updates.
+ * @param {number} [props.maxIterations=10] - Number of scramble iterations to perform when not revealing sequentially.
+ * @param {boolean} [props.sequential=false] - If true, reveal one character per tick until the full text is revealed.
+ * @param {'start'|'end'|'center'} [props.revealDirection='start'] - Direction used to pick the next character index when revealing sequentially.
+ * @param {boolean} [props.useOriginalCharsOnly=false] - If true, scramble using only characters present in the original text (excluding spaces); otherwise use the provided `characters` set.
+ * @param {string} [props.characters] - String of characters to use for scrambling when `useOriginalCharsOnly` is false.
+ * @param {string} [props.className] - CSS class applied to revealed characters.
+ * @param {string} [props.parentClassName] - CSS class applied to the root element.
+ * @param {string} [props.encryptedClassName] - CSS class applied to characters while they are scrambled/encrypted.
+ * @param {'hover'|'view'|'both'} [props.animateOn='hover'] - Determines whether the animation starts on hover, when the element enters the viewport, or both.
+ * @param {...any} [props.*] - Additional props are spread onto the root element.
+ * @returns {JSX.Element} The rendered span containing accessible (screen-reader) and visual per-character scrambled/revealed text.
+ */
 export default function DecryptedText({
   text,
   speed = 50,

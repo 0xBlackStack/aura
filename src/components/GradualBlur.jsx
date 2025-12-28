@@ -100,6 +100,32 @@ const useIntersectionObserver = (ref, shouldObserve = false) => {
   return isVisible;
 };
 
+/**
+ * Render a configurable layered blur overlay that anchors to a page or parent and animates via scroll, hover, or explicit timing.
+ *
+ * Renders multiple stacked, masked divs with increasing backdrop blur and opacity to create a gradual blur gradient from the specified edge.
+ *
+ * @param {object} props - Component props and configuration overrides.
+ * @param {string} [props.preset] - Named preset to apply from GradualBlur.PRESETS.
+ * @param {string} [props.position] - Edge to anchor the overlay: 'top', 'bottom', 'left', or 'right'.
+ * @param {string} [props.target] - 'page' to fix to viewport, otherwise positioned relative to parent.
+ * @param {number} [props.divCount] - Number of layered divs used to build the gradient.
+ * @param {number} [props.strength] - Base blur strength multiplier.
+ * @param {boolean} [props.exponential] - If true, blur grows exponentially across layers.
+ * @param {string} [props.curve] - Curve name to transform progress (from GradualBlur.CURVE_FUNCTIONS).
+ * @param {number} [props.opacity] - Opacity applied to each blur layer.
+ * @param {number} [props.hoverIntensity] - Multiplier applied to strength while hovered (enables hover handlers).
+ * @param {string} [props.animated] - Animation mode: e.g., 'scroll' to reveal on intersection or any truthy value for transitions.
+ * @param {string} [props.duration] - Animation duration string (e.g., '0.6s').
+ * @param {string} [props.easing] - Transition timing function (e.g., 'ease').
+ * @param {boolean|object} [props.responsive] - If enabled, height/width adapt to breakpoints; can be a config object.
+ * @param {string|number} [props.height] - Desired height for vertical orientations (can be responsive).
+ * @param {string|number} [props.width] - Desired width for horizontal orientations (can be responsive).
+ * @param {number} [props.zIndex] - Base z-index for the container.
+ * @param {object} [props.style] - Additional CSS styles merged into the container.
+ * @param {string} [props.className] - Additional CSS class name(s) applied to the root element.
+ * @param {Function} [props.onAnimationComplete] - Callback invoked after a scroll-triggered animation completes (duration determines timing).
+ * @returns {JSX.Element} The GradualBlur React element that renders the layered blur overlay.
 function GradualBlur(props) {
   const containerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
