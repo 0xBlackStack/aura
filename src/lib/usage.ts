@@ -34,6 +34,12 @@ export async function consumeCredit() {
     return result;
 }
 
+/**
+ * Retrieve the current rate-limiter usage record for the authenticated user.
+ *
+ * @returns The user's rate-limiter usage record for the current window, or `null` if no record exists.
+ * @throws Error - If there is no authenticated user (`"User not authenticated"`).
+ */
 export async function getUsageStatus() {
     const { userId } = await auth();
 
@@ -49,6 +55,12 @@ export async function getUsageStatus() {
 
 const FREE_LIMIT = 3;
 
+/**
+ * Determines whether the current user may use the prompt enhancer and how many free uses remain.
+ *
+ * @returns An object with `allowed` set to `true` if the user may use the enhancer and `remaining` equal to the number of free uses left (uses `Infinity` for pro users).
+ * @throws If there is no authenticated user.
+ */
 export async function canUsePromptEnhancer() {
     const { userId, has } = await auth();
 
@@ -78,6 +90,14 @@ export async function canUsePromptEnhancer() {
     };
 }
 
+/**
+ * Increment the prompt-enhancer usage count for the authenticated user.
+ *
+ * For pro-plan users this function does nothing; for non-pro users it records one additional use
+ * by incrementing (or creating) the user's prompt usage count in persistent storage.
+ *
+ * @throws Error - If the caller is not authenticated (message: "Not authenticated")
+ */
 export async function consumePromptEnhancer() {
     const { userId, has } = await auth();
     if (!userId) throw new Error("Not authenticated");

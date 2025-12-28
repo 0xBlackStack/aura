@@ -171,6 +171,25 @@ void main() {
 }
 `;
 
+/**
+ * Render a configurable procedural pixelated snow effect using Three.js and a GLSL shader.
+ *
+ * @param {string} color - Base snow color as any CSS color string (default: '#ffffff').
+ * @param {number} flakeSize - Base size of flakes in world units (default: 0.01).
+ * @param {number} minFlakeSize - Minimum apparent flake size multiplier for near/far scaling (default: 1.25).
+ * @param {number} pixelResolution - Effective pixelation resolution for the effect (higher = finer detail) (default: 200).
+ * @param {number} speed - Playback speed multiplier for the snow animation (default: 1.25).
+ * @param {number} depthFade - Controls how quickly flakes fade with depth (default: 8).
+ * @param {number} farPlane - Far plane distance for the procedural camera raymarching (default: 20).
+ * @param {number} brightness - Color brightness multiplier applied to the snow color (default: 1).
+ * @param {number} gamma - Gamma correction value applied to final color (default: 0.4545).
+ * @param {number} density - Density of generated snowflakes (0..1) (default: 0.3).
+ * @param {('square'|'round'|'snowflake')} variant - Flake shape variant: 'square', 'round', or 'snowflake' (default: 'square').
+ * @param {number} direction - Wind direction in degrees affecting snow movement (default: 125).
+ * @param {string} className - Additional CSS class names added to the container element (default: '').
+ * @param {Object} style - Inline styles applied to the container element (default: {}).
+ * @returns {JSX.Element} A div container element that hosts the WebGL canvas rendering the snow effect.
+ */
 export default function PixelSnow({
   color = '#ffffff',
   flakeSize = 0.01,

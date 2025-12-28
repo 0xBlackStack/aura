@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import './RotatingText.css';
 
+/**
+ * Builds a space-separated className string from the provided values, omitting falsy entries.
+ * @param {...(string|false|null|undefined)} classes - Class names or falsy values to include.
+ * @returns {string} A string containing all truthy class names separated by single spaces.
+ */
 function cn(...classes) {
   return classes.filter(Boolean).join(' ');
 }

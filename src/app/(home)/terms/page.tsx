@@ -22,6 +22,13 @@ const handleAnimationComplete = () => {
     console.log('All letters have animated!');
 };
 
+/**
+ * Render the Terms and Conditions page with animated headline and theme-aware visual effects.
+ *
+ * Renders a full-height page containing an animated "Aurix Terms And Conditions" heading, optional pixelated snow background in non-light themes, an optional custom target cursor on larger viewports, and a bottom gradual blur overlay. Visuals and behavior adapt to the resolved theme and viewport width.
+ *
+ * @returns The JSX element for the Terms and Conditions page, including animated text, conditional PixelSnow, TargetCursor, and GradualBlur components.
+ */
 export default function Home() {
     const [mounted, setMounted] = useState(false);
 
