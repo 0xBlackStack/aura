@@ -16,7 +16,7 @@ const Layout = ({ children }: Props) => {
           bg-[radial-gradient(#d1d5db_1px,transparent_1px)]
           dark:bg-[#0b0e14]
           dark:bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)]
-          [background-size:20px_20px]
+          bg-size-[20px_20px]
         "
             />
 

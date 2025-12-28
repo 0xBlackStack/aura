@@ -49,42 +49,28 @@ export async function getUsageStatus() {
 
 const FREE_LIMIT = 3;
 
+
 export async function canUsePromptEnhancer() {
     const { userId, has } = await auth();
-
     if (!userId) throw new Error("Not authenticated");
-
-    // Pro = unlimited
-    if (has({ plan: "pro" })) {
-        return { allowed: true, remaining: Infinity };
+    const isPro = has && has({ plan: "pro" });
+    if (isPro) {
+        return { allowed: true, remaining: -1, isPro: true };
     }
-
-    const usage = await prisma.promptUsage.findUnique({
-        where: { userId },
-    });
-
+    const usage = await prisma.promptUsage.findUnique({ where: { userId } });
     const used = usage?.count ?? 0;
-
-    console.log(
-        used < FREE_LIMIT,
-        Math.max(0, FREE_LIMIT - used),
-    )
-
-    console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
-
     return {
         allowed: used < FREE_LIMIT,
         remaining: Math.max(0, FREE_LIMIT - used),
+        isPro: false,
     };
 }
 
 export async function consumePromptEnhancer() {
     const { userId, has } = await auth();
     if (!userId) throw new Error("Not authenticated");
-
-    // Pro users don't get tracked
-    if (has({ plan: "pro" })) return;
-
+    const isPro = has && has({ plan: "pro" });
+    if (isPro) return;
     await prisma.promptUsage.upsert({
         where: { userId },
         update: { count: { increment: 1 } },

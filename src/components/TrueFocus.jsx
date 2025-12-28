@@ -48,9 +48,10 @@ const TrueFocus = ({
     });
   }, [currentIndex, words.length]);
 
+
   const handleMouseEnter = index => {
     if (manualMode) {
-      setLastActiveIndex(index);
+      setLastActiveIndex(currentIndex);
       setCurrentIndex(index);
     }
   };
@@ -65,22 +66,17 @@ const TrueFocus = ({
     <div className="focus-container" ref={containerRef}>
       {words.map((word, index) => {
         const isActive = index === currentIndex;
+        // Compute blur value once
+        const blur = isActive ? 0 : blurAmount;
         return (
           <span
             key={index}
             ref={el => (wordRefs.current[index] = el)}
             className={`focus-word ${manualMode ? 'manual' : ''} ${isActive && !manualMode ? 'active' : ''}`}
             style={{
-              filter: manualMode
-                ? isActive
-                  ? `blur(0px)`
-                  : `blur(${blurAmount}px)`
-                : isActive
-                  ? `blur(0px)`
-                  : `blur(${blurAmount}px)`,
+              filter: `blur(${blur}px)`,
               '--border-color': borderColor,
-              '--glow-color': glowColor,
-              transition: `filter ${animationDuration}s ease`
+              '--glow-color': glowColor
             }}
             onMouseEnter={() => handleMouseEnter(index)}
             onMouseLeave={handleMouseLeave}

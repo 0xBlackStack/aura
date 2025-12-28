@@ -20,9 +20,14 @@ export const usageRouter = createTRPCRouter({
             throw new Error("Not authenticated");
         }
 
-        if (has({ plan: "pro" })) {
+        const isPro = has && has({ plan: "pro" });
+        if (isPro) {
             return {
                 isPro: true,
+                used: 0,
+                limit: -1,
+                remaining: -1,
+                allowed: true,
             };
         }
 

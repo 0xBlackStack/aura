@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE "Fragment" ADD COLUMN     "sandboxId" TEXT NOT NULL;
+ALTER TABLE "Fragment" ADD COLUMN     "sandboxId" TEXT;

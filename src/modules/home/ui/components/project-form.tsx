@@ -169,7 +169,7 @@ export const ProjectForm = () => {
                     By prompting Aurix, you are accepting our <span className="text-primary font-bold cursor-target" onClick={() => router.push('/terms')}>terms and conditions</span> and <span className="text-primary font-bold cursor-target" onClick={() => router.push('/privacy')}>privacy policy</span>.
                 </p>
 
-                <div className="flex-wrap flex-row justify-center gap-2 hidden md:flex max-w-3xl bg-background/30 border border-[0.1rem] pr-3 pl-3 pt-6 pb-6 rounded-lg lg:mt-12">
+                <div className="flex-wrap flex-row justify-center gap-2 hidden md:flex max-w-3xl bg-background/30 border pr-3 pl-3 pt-6 pb-6 rounded-lg lg:mt-12">
                     <span className="text-center font-bold uppercase text-muted-foreground">
                         Aurix Recommandation&apos;s
                     </span>

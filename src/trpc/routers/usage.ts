@@ -13,9 +13,10 @@ export const usageRouter = createTRPCRouter({
         if (isPro) {
             return {
                 used: 0,
-                limit: Infinity,
-                remaining: Infinity,
+                limit: -1,
+                remaining: -1,
                 isPro: true,
+                allowed: true,
             };
         }
 

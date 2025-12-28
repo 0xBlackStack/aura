@@ -19,7 +19,11 @@ export const NavBar = () => {
     const { setTheme, theme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
     const { has } = useAuth();
+
+    // Only show upgrade if not on /pricing and not pro
+    const showUpgrade = pathname !== "/pricing" && !has?.({ plan: "pro" });
 
     useEffect(() => {
         setMounted(true);
@@ -80,7 +84,7 @@ export const NavBar = () => {
                     </SignedOut>
 
                     <SignedIn>
-                        {usePathname() === "/pricing" || !has?.({ plan: "pro" }) && (
+                        {showUpgrade && (
                             <Button variant="outline" size="sm" className="cursor-target" onClick={() => { router.push('/pricing') }}>
                                 <Crown className="mr-1 h-4 w-4" /> Upgrade
                             </Button>

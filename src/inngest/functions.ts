@@ -108,9 +108,13 @@ function getLLM() {
     }
 
     // -------- OPENROUTER FALLBACK --------
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+        throw new Error("OPENROUTER_API_KEY is missing. Please set it in your environment to use OpenRouter features.");
+    }
     return openai({
         baseUrl: "https://openrouter.ai/api/v1",
-        apiKey: process.env.OPENROUTER_API_KEY || "",
+        apiKey: openRouterKey,
         model: getOpenRouterModel(),
     });
 
@@ -559,15 +563,28 @@ You are a neutral prompt refiner.
                 }),
             });
 
-            const { output } = await fixPrompt.run(event.data.value);
-            const enhancedPrompt = extractTextFromMessages(output);
+            let promptActual;
+            try {
+                const { output } = await fixPrompt.run(event.data.value);
+                const enhancedPrompt = extractTextFromMessages(output);
 
-            if (
-                !enhancedPrompt || enhancedPrompt.length < event.data.value.length
-            ) {
+                // Enhanced validation: must be non-empty, not obviously truncated, ends with sentence punctuation, no artifacts
+                const isValidEnhanced = (
+                    typeof enhancedPrompt === 'string' &&
+                    enhancedPrompt.trim().length > 0 &&
+                    enhancedPrompt.length >= event.data.value.length &&
+                    /[.!?\u2026]$/.test(enhancedPrompt.trim()) &&
+                    !/\.\.\.|\{\{|\}\}|\[\[|\]\]|<.*?>|__PLACEHOLDER__|\bTODO\b/i.test(enhancedPrompt) // no ellipsis, unmatched braces, placeholder tokens
+                );
+
+                if (isValidEnhanced) {
+                    promptActual = enhancedPrompt;
+                } else {
+                    promptActual = event.data.value;
+                }
+            } catch (e) {
+                console.error("Prompt enhancement failed, falling back to original:", e);
                 promptActual = event.data.value;
-            } else {
-                promptActual = enhancedPrompt;
             }
         } else {
             promptActual = event.data.value;

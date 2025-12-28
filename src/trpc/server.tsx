@@ -16,4 +16,9 @@ export const trpc = createTRPCOptionsProxy({
 });
 
 // Server-side direct caller (no React)
-export const caller = appRouter.createCaller(createTRPCContext);
+
+// Use this to get a caller with the correct context
+export async function getCaller() {
+    const context = await createTRPCContext();
+    return appRouter.createCaller(context);
+}
