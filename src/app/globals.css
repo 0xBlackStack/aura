@@ -442,3 +442,19 @@
     background: oklch(0.96 0 0);
   }
 }
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE (RIP) */
+body {
+  -ms-overflow-style: none;
+}

@@ -31,7 +31,7 @@ export const NavBar = () => {
 
     return (
         <nav className={
-            cn("p-4 bg-transparent fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b border-transparent", isScrolled && "bg-background border-border"
+            cn("p-4 bg-transparent fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b border-transparent", isScrolled && "bg-background/25 border-border"
             )
         }>
             <div className="max-w-5xl mx-auto w-full flex justify-between items-center">
@@ -84,6 +84,12 @@ export const NavBar = () => {
                     </SignedOut>
 
                     <SignedIn>
+                        <Link href="/referrals">
+                            <Button variant="ghost" size="sm" className="cursor-target">
+                                Referrals
+                            </Button>
+                        </Link>
+
                         {showUpgrade && (
                             <Button variant="outline" size="sm" className="cursor-target" onClick={() => { router.push('/pricing') }}>
                                 <Crown className="mr-1 h-4 w-4" /> Upgrade

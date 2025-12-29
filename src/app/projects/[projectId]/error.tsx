@@ -7,6 +7,7 @@ export default function Error({
     error: Error;
     reset: () => void;
 }) {
+    console.error("Project error:", error);
     return (
         <div className="flex h-full min-h-[60vh] items-center justify-center p-6">
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-center">

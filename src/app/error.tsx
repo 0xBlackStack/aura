@@ -7,6 +7,7 @@ export default function GlobalError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    console.error("Global error:", error);
     return (
         <div className="relative overflow-hidden bg-black text-white ">
             {/* 🔮 Animated glow background */}

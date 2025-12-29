@@ -498,8 +498,7 @@ ${recentContext}
             }
         })
 
-        let promptActual;
-
+        let promptActual = event.data.value;
 
         if (event.data.enhancePrompt === true) {
 
@@ -563,7 +562,6 @@ You are a neutral prompt refiner.
                 }),
             });
 
-            let promptActual;
             try {
                 const { output } = await fixPrompt.run(event.data.value);
                 const enhancedPrompt = extractTextFromMessages(output);
@@ -579,15 +577,10 @@ You are a neutral prompt refiner.
 
                 if (isValidEnhanced) {
                     promptActual = enhancedPrompt;
-                } else {
-                    promptActual = event.data.value;
                 }
             } catch (e) {
                 console.error("Prompt enhancement failed, falling back to original:", e);
-                promptActual = event.data.value;
             }
-        } else {
-            promptActual = event.data.value;
         }
 
         const result = await network.run(promptActual, {
