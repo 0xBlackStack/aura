@@ -18,6 +18,8 @@ const TargetCursor = ({
   const targetCornerPositionsRef = useRef(null);
   const tickerFnRef = useRef(null);
   const activeStrengthRef = useRef(0);
+  const dialogOpenRef = useRef(false);
+  const originalCursorRef = useRef('auto');
 
   // SSR-safe: detect mobile on client only
   const [isMobile, setIsMobile] = useState(false);
@@ -50,10 +52,27 @@ const TargetCursor = ({
     });
   }, []);
 
+  // Function to restore cursor when dialogs open
+  const showCursor = useCallback(() => {
+    if (hideDefaultCursor) {
+      document.body.style.cursor = 'auto';
+    }
+    dialogOpenRef.current = true;
+  }, [hideDefaultCursor]);
+
+  // Function to hide cursor when dialogs close
+  const hideCursor = useCallback(() => {
+    if (hideDefaultCursor && !dialogOpenRef.current) {
+      document.body.style.cursor = 'none';
+    }
+    dialogOpenRef.current = false;
+  }, [hideDefaultCursor]);
+
   useEffect(() => {
     if (isMobile || !cursorRef.current) return;
 
-    const originalCursor = document.body.style.cursor;
+    // Store original cursor
+    originalCursorRef.current = document.body.style.cursor;
     if (hideDefaultCursor) {
       document.body.style.cursor = 'none';
     }
