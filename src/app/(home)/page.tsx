@@ -6,20 +6,17 @@ import { ProjectsList } from "@/modules/home/ui/components/project-list";
 import Image from "next/image";
 import { toast } from "sonner";
 import SplitText from "@/components/SplitText";
-import dynamic from "next/dynamic";
-import PixelSnow from '@/components/PixelSnow';
+import Aurora from '@/components/Aurora';
 import "./pixelSnow.css"
+import { motion } from "framer-motion";
 
-const TargetCursor = dynamic(
-  () => import("@/components/TargetCursor"),
-  { ssr: false }
-);
 
 
 // Component added by Ansh - github.com/ansh-dhanani
 
 import GradualBlur from '@/components/GradualBlur';
 import { useTheme } from "next-themes";
+import Link from "next/link";
 const handleAnimationComplete = () => {
   console.log('All letters have animated!');
 };
@@ -32,10 +29,6 @@ export default function Home() {
   }, []);
 
   const { resolvedTheme } = useTheme();
-
-  const snowColor =
-    resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
-
 
   useEffect(() => {
     if (
@@ -68,17 +61,10 @@ export default function Home() {
         }}
       >
         {mounted && resolvedTheme !== "light" && (
-          <PixelSnow
-            color={snowColor}
-            pixelResolution={500}
-            speed={1.4}
-            density={0.25}
-            flakeSize={0.013}
-            brightness={0.8}
-            depthFade={20}
-            farPlane={20}
-            direction={125}
-            variant="square"
+          <Aurora
+            colorStops={["#5227FF", "#7cff67", "#5227FF"]}
+            amplitude={1}
+            blend={0.5}
           />
         )}
 
@@ -96,19 +82,24 @@ export default function Home() {
         <div style={{ height: "100vh", overflowY: "auto", padding: "6rem 2rem 5rem 2rem" }}>
           <div>
             {mounted && !isSmall && resolvedTheme !== "light" && (
-              <TargetCursor
-                spinDuration={2}
-                hideDefaultCursor={true}
-                parallaxOn={false}
-                hoverDuration={0.1}
-              />
+              ""
             )}
 
 
 
             <div className="flex flex-col max-w-5xl mx-auto w-full px-4">
-              <section className="space-y-6 py-[16vh] pt-[1vh] 2xl:py-48">
-                <div className="flex flex-col items-center">
+              <motion.section
+                className="space-y-6 py-[16vh] pt-[1vh] 2xl:py-48"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                <motion.div
+                  className="flex flex-col items-center"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
                   <Image
                     src="/logo.png"
                     alt="Aurix"
@@ -117,9 +108,14 @@ export default function Home() {
                     className="hidden md:block"
                     priority
                   />
-                </div>
+                </motion.div>
 
-                <div className="flex justify-center text-center">
+                <motion.div
+                  className="flex justify-center text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                >
                   <SplitText
                     text="Build something meaningful with Aurix"
                     className="text-2xl md:text-5xl font-bold text-center"
@@ -134,16 +130,21 @@ export default function Home() {
                     textAlign="center"
                     onLetterAnimationComplete={handleAnimationComplete}
                   />
-                </div>
+                </motion.div>
 
-                <p className="text-lg md:text-xl text-muted-foreground text-center">
+                <motion.p
+                  className="text-lg md:text-xl text-muted-foreground text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                >
                   Create websites and applications without technical complexity.
-                </p>
+                </motion.p>
 
                 <div className="max-w-3xl mx-auto w-full">
                   <ProjectForm />
                 </div>
-              </section>
+              </motion.section>
 
               <ProjectsList />
 
@@ -154,9 +155,29 @@ export default function Home() {
             <br />
             <br />
 
-            <p className="text-muted-foreground text-center">
+            <motion.p
+              className="text-muted-foreground text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1 }}
+            >
               UI effects powered by ReactBits
-            </p>
+            </motion.p>
+
+            <motion.footer
+              className="flex gap-4 justify-center text-sm text-muted-foreground mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
+            >
+              <Link href={"/terms"} className="hover:text-foreground transition-colors cursor-target">
+                Terms And Conditions
+              </Link>
+
+              <Link href={"/privacy"} className="hover:text-foreground transition-colors cursor-target">
+                Privacy Policy
+              </Link>
+            </motion.footer>
           </div>
         </div>
 

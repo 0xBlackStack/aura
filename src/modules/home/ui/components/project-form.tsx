@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import TextareaAutosize from "react-textarea-autosize";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpIcon, Loader2Icon, SparklesIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc/react";
@@ -16,6 +16,7 @@ import { PROJECT_TEMPLATES } from "../../constants";
 import { useClerk } from "@clerk/nextjs";
 import { Toggle } from "@/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
 
 const formSchema = z.object({
     value: z
@@ -80,10 +81,51 @@ export const ProjectForm = () => {
 
     const { data: peUsage } = trpc.usage.statusForPE.useQuery();
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const isShortcut =
+                (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "e";
+
+            if (!isShortcut) return;
+
+            // Avoid conflict while typing
+            if ((e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+
+            e.preventDefault();
+
+            const value = form.getValues("value");
+
+            if (!value.trim()) {
+                toast.error("Prompt cannot be empty.");
+                return;
+            }
+
+            if (peUsage && !peUsage.allowed) {
+                toast.error("Upgrade to Pro to use prompt enhancement.");
+                return;
+            }
+
+            setFixP((prev) => !prev);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [form, peUsage]);
     return (
         <Form {...form}>
-            <section className="space-y-6 lg:mt-6">
-                <form onSubmit={form.handleSubmit(onSubmit)} className={cn("relative border p-4 pt-1 rounded-xl bg-sidebar dark:bg-sidebar transition-all mb-0", isFocused && "shadow-xs",)}>
+            <motion.section 
+                className="space-y-6 lg:mt-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+            >
+                <motion.form 
+                    onSubmit={form.handleSubmit(onSubmit)} 
+                    className={cn("relative border p-4 pt-1 rounded-xl bg-sidebar dark:bg-sidebar transition-all mb-0", isFocused && "shadow-xs",)}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                >
                     <FormField
                         control={form.control}
                         name="value"
@@ -143,10 +185,10 @@ export const ProjectForm = () => {
                                             <span className="hidden sm:inline">Enhance Prompt</span>
                                         </div>
                                     </TooltipTrigger>
-
                                     <TooltipContent side="top">
-                                        Enhance prompt
+                                        Enhance prompt (Ctrl / Cmd + E)
                                     </TooltipContent>
+
                                 </Tooltip>
                             </Toggle>
                             <span className="ml-4" />
@@ -164,32 +206,47 @@ export const ProjectForm = () => {
                             </Button>
                         </div>
                     </div>
-                </form>
-                <p className="text-center text-muted-foreground text-xs">
+                </motion.form>
+                <motion.p 
+                    className="text-center text-muted-foreground text-xs"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                >
                     By prompting Aurix, you are accepting our <span className="text-primary font-bold cursor-target" onClick={() => router.push('/terms')}>terms and conditions</span> and <span className="text-primary font-bold cursor-target" onClick={() => router.push('/privacy')}>privacy policy</span>.
-                </p>
+                </motion.p>
 
-                <div className="flex-wrap flex-row justify-center gap-2 hidden md:flex max-w-3xl bg-background/30 border pr-3 pl-3 pt-6 pb-6 rounded-lg lg:mt-12">
+                <motion.div 
+                    className="flex-wrap flex-row justify-center gap-2 hidden md:flex max-w-3xl bg-background/30 border pr-3 pl-3 pt-6 pb-6 rounded-lg lg:mt-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.7 }}
+                >
                     <span className="text-center font-bold uppercase text-muted-foreground">
                         Aurix Recommandation&apos;s
                     </span>
                     <div className="flex-wrap justify-center gap-2 hidden md:flex max-w-3xl cursor-target">
-                        {PROJECT_TEMPLATES.map((template) => (
-                            <Button
+                        {PROJECT_TEMPLATES.map((template, index) => (
+                            <motion.div
                                 key={template.title}
-                                variant="outline"
-                                size="sm"
-                                className="bg-black/5 dark:bg-sidebar flex items-center gap-2 cursor-pointer"
-                                onClick={() => onSelect(template.prompt)}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.4, delay: 0.8 + (index * 0.1) }}
                             >
-                                <span>{template.emoji}</span>
-                                <span>{template.title}</span>
-                            </Button>
-
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="bg-black/5 dark:bg-sidebar flex items-center gap-2 cursor-pointer"
+                                    onClick={() => onSelect(template.prompt)}
+                                >
+                                    <span>{template.emoji}</span>
+                                    <span>{template.title}</span>
+                                </Button>
+                            </motion.div>
                         ))}
                     </div>
-                </div>
-            </section>
+                </motion.div>
+            </motion.section>
 
         </Form >
     )

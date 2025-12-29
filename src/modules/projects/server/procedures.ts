@@ -52,11 +52,9 @@ export const projectsRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
-
             // 1️⃣ Check enhance availability (NO consume yet)
             if (input.enhancePrompt) {
                 const status = await canUsePromptEnhancer();
-
                 if (!status.allowed) {
                     throw new TRPCError({
                         code: "TOO_MANY_REQUESTS",
@@ -73,6 +71,20 @@ export const projectsRouter = createTRPCRouter({
                     code: "TOO_MANY_REQUESTS",
                     message: "You have run out of credits",
                 });
+            }
+
+            // 2.5️⃣ Enforce project ownership limit for free users
+            const isPro = ctx.auth.has({ plan: "pro" });
+            if (!isPro) {
+                const projectCount = await prisma.project.count({
+                    where: { userId: ctx.auth.userId },
+                });
+                if (projectCount >= 5) {
+                    throw new TRPCError({
+                        code: "TOO_MANY_REQUESTS",
+                        message: "Free users can only own up to 5 projects. Upgrade to Pro for unlimited projects.",
+                    });
+                }
             }
 
             // 3️⃣ Create project
@@ -161,5 +173,50 @@ export const projectsRouter = createTRPCRouter({
                     message: `Download failed: ${errorMsg}`,
                 });
             }
+        }),
+
+    delete: protectedProcedure
+        .input(
+            z.object({
+                id: z.string().min(1, { message: "Project ID cannot be empty" }),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            // 1️⃣ Verify project exists and belongs to the user
+            const existingProject = await prisma.project.findUnique({
+                where: {
+                    id: input.id,
+                },
+                select: {
+                    id: true,
+                    userId: true,
+                    name: true,
+                },
+            });
+
+            // 2️⃣ Security check: Project must exist
+            if (!existingProject) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Project not found",
+                });
+            }
+
+            // 3️⃣ Security check: User must own the project
+            if (existingProject.userId !== ctx.auth.userId) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "You don't have permission to delete this project",
+                });
+            }
+
+            // 4️⃣ Delete the project (cascades to messages and fragments)
+            await prisma.project.delete({
+                where: {
+                    id: input.id,
+                },
+            });
+
+            return { success: true, projectName: existingProject.name };
         })
 });
