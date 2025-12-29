@@ -532,7 +532,7 @@ export default function Home() {
 
                                     <div className="bg-muted/30 p-4 rounded border text-center">
                                         <p className="text-sm text-muted-foreground">
-                                            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            <strong>Last Updated:</strong> 30 December 2025
                                         </p>
                                         <p className="text-sm text-muted-foreground mt-2">
                                             This Privacy Policy was last reviewed and updated to ensure compliance with current privacy laws and best practices, including GDPR, CCPA, and other applicable regulations.

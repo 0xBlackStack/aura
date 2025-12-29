@@ -400,7 +400,7 @@ export default function Home() {
 
                                     <div className="bg-muted/30 p-4 rounded border text-center">
                                         <p className="text-sm text-muted-foreground">
-                                            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            <strong>Last Updated:</strong> 30 December 2025s
                                         </p>
                                         <p className="text-sm text-muted-foreground mt-2">
                                             These Terms and Conditions were last reviewed and updated to ensure compliance with current laws and best practices.

@@ -79,15 +79,9 @@ export const referralsRouter = createTRPCRouter({
                 referredUsers: user.referredUsers,
             };
         } catch (error) {
-            // If database error, return fallback data
+            // Log the error for diagnostics and re-throw for proper error handling
             console.error("Error fetching referral info:", error);
-            const fallbackReferralCode = nanoid(8);
-            return {
-                referralCode: fallbackReferralCode,
-                totalReferrals: 0,
-                points: 0,
-                referredUsers: [],
-            };
+            throw new Error("Unable to retrieve referral information. Please try again later.");
         }
     }),
 
@@ -162,13 +156,7 @@ export const referralsRouter = createTRPCRouter({
         const user = await prisma.user.findUnique({
             where: { clerkId },
             include: {
-                referredUsers: {
-                    where: {
-                        createdAt: {
-                            gte: new Date(Date.now() - REFERRAL_DURATION_HOURS * 60 * 60 * 1000),
-                        },
-                    },
-                },
+                referredUsers: true,
             },
         });
 
