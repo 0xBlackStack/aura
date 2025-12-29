@@ -88,9 +88,21 @@ export const ProjectsList = () => {
                 </motion.h2>
 
                 {isLoading && (
-                    <p className="text-sm text-muted-foreground">
-                        Loading your projects…
-                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <div key={index} className="relative group">
+                                <div className="w-full h-auto justify-start p-4 text-left border rounded-md">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-8 h-8 bg-muted rounded animate-pulse"></div>
+                                        <div className="flex flex-col overflow-hidden flex-1">
+                                            <div className="h-4 bg-muted rounded animate-pulse mb-2"></div>
+                                            <div className="h-3 bg-muted rounded animate-pulse w-2/3"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
 
                 {!isLoading && projects.length === 0 && (

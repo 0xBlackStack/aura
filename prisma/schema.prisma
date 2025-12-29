@@ -11,6 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Project {
@@ -71,4 +72,19 @@ model Usage {
 model PromptUsage {
   userId String @id
   count  Int    @default(0)
+}
+
+model User {
+  id             String    @id @default(uuid())
+  clerkId        String    @unique
+  referralCode   String    @unique
+  referredBy     String?
+  points         Int       @default(0)
+  pointsExpireAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  referredUsers User[] @relation("ReferralChain")
+  referrer      User?  @relation("ReferralChain", fields: [referredBy], references: [id])
 }

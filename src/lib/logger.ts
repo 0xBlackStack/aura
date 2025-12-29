@@ -7,7 +7,7 @@ export function logEvent(event: {
     model?: string;
     sandboxId?: string;
     status?: "success" | "error" | "refused";
-    meta?: Record<string, any>;
+    meta?: Record<string, unknown>;
     promptLength?: number;
 }) {
     console.log(JSON.stringify({

@@ -2,7 +2,7 @@
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { MessageContainer } from "../components/message-container";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { Fragment } from "@/generated/prisma/client";
 import { ProjectHeader } from "../components/project-header";
 import { FragmentView } from "../components/fragment-web";
@@ -27,7 +27,7 @@ import { trpc } from "@/trpc/react";
 export const ProjectView = ({ projectId }: { projectId: string }) => {
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
     const [tabState, setTabState] = useState<"preview" | "code">("preview");
-    const [] = useState(false)
+
 
     const { has } = useAuth()
     const isFreePlan = has?.({ plan: "free_user" })
@@ -37,18 +37,18 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
             window.open(url, "_blank");
         },
         onError: (err) => {
-            console.error(err)
+            console.error(err);
             toast.error("Download failed");
         },
     });
 
-    const handleDownload = () => {
-        if (!activeFragment?.sandboxId) return;
+    const handleDownload = useCallback(() => {
+        if (!activeFragment?.sandboxId) return toast.info("Please select a Fragment first.");
 
         downloadMutation.mutate({
             sandboxId: activeFragment.sandboxId,
         });
-    };
+    }, [activeFragment?.sandboxId, downloadMutation]);
 
 
     return (
@@ -148,9 +148,12 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                                         size="sm"
                                         variant="tertiary"
                                         onClick={handleDownload}
+                                        disabled={downloadMutation.isPending}
                                     >
                                         <DownloadCloud size={16} className="mr-1 inline-block" />
-                                        Download
+                                        {
+                                            downloadMutation.isPending ? "Preparing..." : "Download"
+                                        }
                                     </Button>
                                 )}
 
@@ -170,9 +173,8 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                         </TabsContent>
 
                         <TabsContent value="code" className="flex-1 overflow-auto">
-                            {!!activeFragment?.files && (
+                            {activeFragment?.files && (
                                 <FileExplorer files={activeFragment.files as { [path: string]: string; }} />
-
                             )}
                         </TabsContent>
 
