@@ -75,8 +75,11 @@ function canUseGroq() {
 
 /* -------------------- OPENROUTER -------------------- */
 
-const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
-if (!OPENROUTER_KEY) throw new Error("OPENROUTER_API_KEY missing");
+function requireOpenRouterKey() {
+    const key = process.env.OPENROUTER_API_KEY;
+    if (!key) throw new Error("OPENROUTER_API_KEY missing");
+    return key;
+}
 
 const OPENROUTER_MODELS = [
     "kwaipilot/kat-coder-pro:free"
@@ -103,16 +106,12 @@ export const codeAgentFunction = inngest.createFunction(
         function openRouterLLM(extra?: LLMOverrides) {
             return openai({
                 baseUrl: "https://openrouter.ai/api/v1",
-                apiKey: OPENROUTER_KEY,
+                apiKey: requireOpenRouterKey(),
                 model: lockedOpenRouterModel,
                 defaultParameters: {
                     max_tokens: 8000,
                     temperature: 0.2,
                     ...extra,
-                },
-                headers: {
-                    "HTTP-Referer": "https://modee.in/",
-                    "X-Title": "Aurix Vibe Coder",
                 },
             });
         }
@@ -263,7 +262,9 @@ export const codeAgentFunction = inngest.createFunction(
             );
             const n = parseInt(extractTextFromMessages(output) || "", 10);
             if (!isNaN(n)) maxIter = Math.min(Math.max(n, 10), 60);
-        } catch { }
+        } catch (err) {
+            console.error("Error parsing iteration count from estimator:", err);
+        }
 
         if (!event.data.isPro && maxIter > 45) maxIter = 45;
 

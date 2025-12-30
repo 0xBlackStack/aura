@@ -62,28 +62,28 @@ export default function Home() {
           pointerEvents: "none",
         }}
       >
-        {mounted && !isSmall && resolvedTheme !== "light" && (
-          <Aurora
-            colorStops={["#5227FF", "#7cff67", "#5227FF"]}
-            amplitude={1}
-            blend={0.5}
-          />
-        )}
+                {mounted && !isSmall && resolvedTheme !== "light" && (
+                    <Aurora
+                        colorStops={["#5227FF", "#7cff67", "#5227FF"]}
+                        amplitude={1}
+                        blend={0.5}
+                    />
+                )}
 
-        {mounted && isSmall && resolvedTheme !== "light" && (
-          <PixelSnow
-            color={snowColor}
-            pixelResolution={500}
-            speed={1.4}
-            density={0.25}
-            flakeSize={0.013}
-            brightness={0.8}
-            depthFade={20}
-            farPlane={20}
-            direction={125}
-            variant="square"
-          />
-        )}
+                {mounted && isSmall && (
+                    <PixelSnow
+                        color={snowColor}
+                        pixelResolution={500}
+                        speed={1.4}
+                        density={0.25}
+                        flakeSize={0.013}
+                        brightness={0.8}
+                        depthFade={20}
+                        farPlane={20}
+                        direction={125}
+                        variant="square"
+                    />
+                )}
 
       </div>
 

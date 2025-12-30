@@ -231,13 +231,13 @@ class x {
   }
 }
 
-const b = new Map(),
-  A = new r();
-let R = false;
+const b = new WeakMap();
+let instanceCount = 0;
 function S(e) {
   const t = {
     position: new r(),
     nPosition: new r(),
+    A: new r(),
     hover: false,
     touching: false,
     onEnter() {},
@@ -249,7 +249,8 @@ function S(e) {
   (function (e, t) {
     if (!b.has(e)) {
       b.set(e, t);
-      if (!R) {
+      instanceCount++;
+      if (instanceCount === 1) {
         document.body.addEventListener('pointermove', M);
         document.body.addEventListener('pointerleave', L);
         document.body.addEventListener('click', C);
@@ -258,15 +259,14 @@ function S(e) {
         document.body.addEventListener('touchmove', TouchMove, { passive: false });
         document.body.addEventListener('touchend', TouchEnd, { passive: false });
         document.body.addEventListener('touchcancel', TouchEnd, { passive: false });
-
-        R = true;
       }
     }
   })(e.domElement, t);
   t.dispose = () => {
     const t = e.domElement;
     b.delete(t);
-    if (b.size === 0) {
+    instanceCount--;
+    if (instanceCount === 0) {
       document.body.removeEventListener('pointermove', M);
       document.body.removeEventListener('pointerleave', L);
       document.body.removeEventListener('click', C);
@@ -275,24 +275,24 @@ function S(e) {
       document.body.removeEventListener('touchmove', TouchMove);
       document.body.removeEventListener('touchend', TouchEnd);
       document.body.removeEventListener('touchcancel', TouchEnd);
-
-      R = false;
     }
   };
   return t;
 }
 
 function M(e) {
-  A.x = e.clientX;
-  A.y = e.clientY;
+  for (const t of b.values()) {
+    t.A.x = e.clientX;
+    t.A.y = e.clientY;
+  }
   processInteraction();
 }
 
 function processInteraction() {
   for (const [elem, t] of b) {
     const i = elem.getBoundingClientRect();
-    if (D(i)) {
-      P(t, i);
+    if (D(i, t.A)) {
+      P(t, i, t.A);
       if (!t.hover) {
         t.hover = true;
         t.onEnter(t);
@@ -306,12 +306,14 @@ function processInteraction() {
 }
 
 function C(e) {
-  A.x = e.clientX;
-  A.y = e.clientY;
+  for (const t of b.values()) {
+    t.A.x = e.clientX;
+    t.A.y = e.clientY;
+  }
   for (const [elem, t] of b) {
     const i = elem.getBoundingClientRect();
-    P(t, i);
-    if (D(i)) t.onClick(t);
+    P(t, i, t.A);
+    if (D(i, t.A)) t.onClick(t);
   }
 }
 
@@ -327,14 +329,16 @@ function L() {
 function TouchStart(e) {
   if (e.touches.length > 0) {
     e.preventDefault();
-    A.x = e.touches[0].clientX;
-    A.y = e.touches[0].clientY;
+    for (const t of b.values()) {
+      t.A.x = e.touches[0].clientX;
+      t.A.y = e.touches[0].clientY;
+    }
 
     for (const [elem, t] of b) {
       const rect = elem.getBoundingClientRect();
-      if (D(rect)) {
+      if (D(rect, t.A)) {
         t.touching = true;
-        P(t, rect);
+        P(t, rect, t.A);
         if (!t.hover) {
           t.hover = true;
           t.onEnter(t);
@@ -348,14 +352,16 @@ function TouchStart(e) {
 function TouchMove(e) {
   if (e.touches.length > 0) {
     e.preventDefault();
-    A.x = e.touches[0].clientX;
-    A.y = e.touches[0].clientY;
+    for (const t of b.values()) {
+      t.A.x = e.touches[0].clientX;
+      t.A.y = e.touches[0].clientY;
+    }
 
     for (const [elem, t] of b) {
       const rect = elem.getBoundingClientRect();
-      P(t, rect);
+      P(t, rect, t.A);
 
-      if (D(rect)) {
+      if (D(rect, t.A)) {
         if (!t.hover) {
           t.hover = true;
           t.touching = true;
@@ -381,14 +387,14 @@ function TouchEnd() {
   }
 }
 
-function P(e, t) {
+function P(e, t, A) {
   const { position: i, nPosition: s } = e;
   i.x = A.x - t.left;
   i.y = A.y - t.top;
   s.x = (i.x / t.width) * 2 - 1;
   s.y = (-i.y / t.height) * 2 + 1;
 }
-function D(e) {
+function D(e, A) {
   const { x: t, y: i } = A;
   const { left: s, top: n, width: o, height: r } = e;
   return t >= s && t <= s + o && i >= n && i <= n + r;
