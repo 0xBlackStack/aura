@@ -47,8 +47,7 @@ export default function Home() {
   const blurStrength = resolvedTheme === "light" ? 2 : 3;
   const blurDivs = resolvedTheme === "light" ? 5 : 7;
 
-  const snowColor =
-    resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+  const snowColor = "#ffffff";
 
 
   return (
@@ -70,7 +69,7 @@ export default function Home() {
           />
         )}
 
-        {mounted && isSmall && resolvedTheme !== "light" && (
+        {mounted && isSmall && (
           <PixelSnow
             color={snowColor}
             pixelResolution={500}

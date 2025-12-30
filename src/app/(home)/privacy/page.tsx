@@ -68,18 +68,20 @@ export default function Home() {
                         blend={0.5}
                     />
                 )}
-                <PixelSnow
-                    color={snowColor}
-                    pixelResolution={500}
-                    speed={1.4}
-                    density={0.25}
-                    flakeSize={0.013}
-                    brightness={0.8}
-                    depthFade={20}
-                    farPlane={20}
-                    direction={125}
-                    variant="square"
-                />
+                {mounted && isSmall && (
+                    <PixelSnow
+                        color={snowColor}
+                        pixelResolution={500}
+                        speed={1.4}
+                        density={0.25}
+                        flakeSize={0.013}
+                        brightness={0.8}
+                        depthFade={20}
+                        farPlane={20}
+                        direction={125}
+                        variant="square"
+                    />
+                )}
             </div>
 
             {/* Your $2M UI untouched */}
