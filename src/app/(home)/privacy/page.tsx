@@ -37,8 +37,7 @@ export default function Home() {
     }, []);
     const [isSmall, setIsSmall] = useState(false);
 
-    const snowColor =
-        resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+    const snowColor = "#9ca3af"; // gray-400 in light
 
     useEffect(() => {
         const check = () => setIsSmall(window.innerWidth < 640); // sm breakpoint
@@ -68,7 +67,7 @@ export default function Home() {
                         blend={0.5}
                     />
                 )}
-                {mounted && isSmall && (
+                {mounted && (
                     <PixelSnow
                         color={snowColor}
                         pixelResolution={500}

@@ -232,7 +232,7 @@ class x {
 }
 
 const b = new WeakMap();
-let R = 0;
+let R = false;
 function S(e) {
   const t = {
     position: new r(),

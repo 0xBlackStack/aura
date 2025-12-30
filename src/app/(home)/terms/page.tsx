@@ -28,8 +28,7 @@ export default function Home() {
     const { resolvedTheme } = useTheme();
 
 
-    const snowColor =
-        resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+    const snowColor = "#9ca3af"; // gray-400 in light
 
 
     useEffect(() => {
@@ -71,7 +70,7 @@ export default function Home() {
                 )}
 
 
-                {mounted && isSmall && (
+                {mounted && (
                     <PixelSnow
                         color={snowColor}
                         pixelResolution={500}
