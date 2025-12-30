@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "gameScore" INTEGER NOT NULL DEFAULT 0;

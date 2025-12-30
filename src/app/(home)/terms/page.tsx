@@ -7,6 +7,7 @@ import SplitText from "@/components/SplitText";
 import Aurora from '@/components/Aurora';
 import "../pixelSnow.css"
 
+import PixelSnow from '@/components/PixelSnow';
 
 
 // Component added by Ansh - github.com/ansh-dhanani
@@ -26,6 +27,9 @@ export default function Home() {
 
     const { resolvedTheme } = useTheme();
 
+
+    const snowColor =
+        resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
 
 
     useEffect(() => {
@@ -58,7 +62,7 @@ export default function Home() {
                     pointerEvents: "none",
                 }}
             >
-                {mounted && resolvedTheme !== "light" && (
+                {mounted && !isSmall && resolvedTheme !== "light" && (
                     <Aurora
                         colorStops={["#5227FF", "#7cff67", "#5227FF"]}
                         amplitude={1}
@@ -66,6 +70,21 @@ export default function Home() {
                     />
                 )}
 
+
+                {mounted && isSmall && resolvedTheme !== "light" && (
+                    <PixelSnow
+                        color={snowColor}
+                        pixelResolution={500}
+                        speed={1.4}
+                        density={0.25}
+                        flakeSize={0.013}
+                        brightness={0.8}
+                        depthFade={20}
+                        farPlane={20}
+                        direction={125}
+                        variant="square"
+                    />
+                )}
             </div>
 
             {/* Your $2M UI untouched */}
@@ -322,7 +341,7 @@ export default function Home() {
                                     <div className="bg-card/50 p-6 rounded-lg border">
                                         <h2 className="text-xl font-semibold mb-4">13. Indemnification</h2>
                                         <p>
-                              {"              You agree to indemnify, defend, and hold harmless Aurix and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:"}
+                                            {"              You agree to indemnify, defend, and hold harmless Aurix and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:"}
                                         </p>
                                         <ul className="list-disc list-inside mb-4 space-y-2">
                                             <li>Your use of the Service</li>
@@ -394,7 +413,7 @@ export default function Home() {
                                             <p><strong>Response Time:</strong> We aim to respond within 5-7 business days</p>
                                         </div>
                                         <p className="mt-4">
-                                        {'    For urgent security issues, please contact us immediately with "SECURITY" in the subject line.'}
+                                            {'    For urgent security issues, please contact us immediately with "SECURITY" in the subject line.'}
                                         </p>
                                     </div>
 

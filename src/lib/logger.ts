@@ -9,6 +9,7 @@ export function logEvent(event: {
     status?: "success" | "error" | "refused";
     meta?: Record<string, unknown>;
     promptLength?: number;
+    error?: string;
 }) {
     console.log(JSON.stringify({
         ...event,
