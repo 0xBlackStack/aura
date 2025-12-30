@@ -71,7 +71,7 @@ export default function Home() {
                 )}
 
 
-                {mounted && isSmall && resolvedTheme !== "light" && (
+                {mounted && isSmall && (
                     <PixelSnow
                         color={snowColor}
                         pixelResolution={500}

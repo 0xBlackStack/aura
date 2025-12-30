@@ -231,13 +231,13 @@ class x {
   }
 }
 
-const b = new Map(),
-  A = new r();
-let R = false;
+const b = new WeakMap();
+let R = 0;
 function S(e) {
   const t = {
     position: new r(),
     nPosition: new r(),
+    A: new r(),
     hover: false,
     touching: false,
     onEnter() {},
@@ -283,15 +283,19 @@ function S(e) {
 }
 
 function M(e) {
-  A.x = e.clientX;
-  A.y = e.clientY;
+  const x = e.clientX;
+  const y = e.clientY;
+  for (const [, t] of b) {
+    t.A.x = x;
+    t.A.y = y;
+  }
   processInteraction();
 }
 
 function processInteraction() {
   for (const [elem, t] of b) {
     const i = elem.getBoundingClientRect();
-    if (D(i)) {
+    if (D(i, t.A)) {
       P(t, i);
       if (!t.hover) {
         t.hover = true;
@@ -306,12 +310,16 @@ function processInteraction() {
 }
 
 function C(e) {
-  A.x = e.clientX;
-  A.y = e.clientY;
+  const x = e.clientX;
+  const y = e.clientY;
+  for (const [, t] of b) {
+    t.A.x = x;
+    t.A.y = y;
+  }
   for (const [elem, t] of b) {
     const i = elem.getBoundingClientRect();
     P(t, i);
-    if (D(i)) t.onClick(t);
+    if (D(i, t.A)) t.onClick(t);
   }
 }
 
@@ -327,12 +335,15 @@ function L() {
 function TouchStart(e) {
   if (e.touches.length > 0) {
     e.preventDefault();
-    A.x = e.touches[0].clientX;
-    A.y = e.touches[0].clientY;
-
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    for (const [, t] of b) {
+      t.A.x = x;
+      t.A.y = y;
+    }
     for (const [elem, t] of b) {
       const rect = elem.getBoundingClientRect();
-      if (D(rect)) {
+      if (D(rect, t.A)) {
         t.touching = true;
         P(t, rect);
         if (!t.hover) {
@@ -348,14 +359,17 @@ function TouchStart(e) {
 function TouchMove(e) {
   if (e.touches.length > 0) {
     e.preventDefault();
-    A.x = e.touches[0].clientX;
-    A.y = e.touches[0].clientY;
-
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    for (const [, t] of b) {
+      t.A.x = x;
+      t.A.y = y;
+    }
     for (const [elem, t] of b) {
       const rect = elem.getBoundingClientRect();
       P(t, rect);
 
-      if (D(rect)) {
+      if (D(rect, t.A)) {
         if (!t.hover) {
           t.hover = true;
           t.touching = true;
@@ -382,13 +396,13 @@ function TouchEnd() {
 }
 
 function P(e, t) {
-  const { position: i, nPosition: s } = e;
+  const { position: i, nPosition: s, A } = e;
   i.x = A.x - t.left;
   i.y = A.y - t.top;
   s.x = (i.x / t.width) * 2 - 1;
   s.y = (-i.y / t.height) * 2 + 1;
 }
-function D(e) {
+function D(e, A) {
   const { x: t, y: i } = A;
   const { left: s, top: n, width: o, height: r } = e;
   return t >= s && t <= s + o && i >= n && i <= n + r;

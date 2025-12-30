@@ -2,6 +2,7 @@
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { MessageContainer } from "../components/message-container";
+import { MessageForm } from "../components/message-form";
 import { Suspense, useState, useCallback } from "react";
 import { Fragment } from "@/generated/prisma/client";
 import { ProjectHeader } from "../components/project-header";
@@ -226,7 +227,7 @@ export const ProjectView = ({ projectId }: { projectId: string }) => {
                                             </div>
                                         }
                                     >
-                                        <ProjectHeader projectId={projectId} />
+                                        <MessageForm projectId={projectId} />
                                     </Suspense>
                                 </ErrorBoundary>
                             </div>
