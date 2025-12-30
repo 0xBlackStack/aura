@@ -21,6 +21,7 @@ model Project {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
+  gameScore Int       @default(0)
 }
 
 enum MessageRole {
@@ -81,6 +82,7 @@ model User {
   referredBy     String?
   points         Int       @default(0)
   pointsExpireAt DateTime?
+  gameScore      Int       @default(0)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

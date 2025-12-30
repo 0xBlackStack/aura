@@ -13,6 +13,7 @@ import { Crown, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const NavBar = () => {
     const isScrolled = useScroll();
@@ -29,10 +30,11 @@ export const NavBar = () => {
         setMounted(true);
     }, []);
 
+    const isMobile = useIsMobile()
+
     return (
         <nav className={
-            cn("p-4 bg-transparent fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b border-transparent", isScrolled && "bg-background/25 border-border"
-            )
+            "p-4 fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b border-transparet bg-background/25 border-border"
         }>
             <div className="max-w-5xl mx-auto w-full flex justify-between items-center">
                 <Link
@@ -91,8 +93,9 @@ export const NavBar = () => {
                         </Link>
 
                         {showUpgrade && (
-                            <Button variant="outline" size="sm" className="cursor-target" onClick={() => { router.push('/pricing') }}>
-                                <Crown className="mr-1 h-4 w-4" /> Upgrade
+                            <Button variant="outline" size={isMobile ? "icon-sm" : "sm"} className="cursor-target" onClick={() => { router.push('/pricing') }}>
+                                <Crown className="mr-1 h-4 w-4" />
+                                <span className={cn(isMobile && "hidden")}>Upgrade</span>
                             </Button>
                         )}
 

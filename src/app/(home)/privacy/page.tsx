@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import SplitText from "@/components/SplitText";
 import Aurora from '@/components/Aurora';
 import "../pixelSnow.css"
-
+import PixelSnow from '@/components/PixelSnow';
 
 
 // Component added by Ansh - github.com/ansh-dhanani
@@ -37,6 +37,9 @@ export default function Home() {
     }, []);
     const [isSmall, setIsSmall] = useState(false);
 
+    const snowColor =
+        resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+
     useEffect(() => {
         const check = () => setIsSmall(window.innerWidth < 640); // sm breakpoint
         check();
@@ -65,7 +68,18 @@ export default function Home() {
                         blend={0.5}
                     />
                 )}
-
+                <PixelSnow
+                    color={snowColor}
+                    pixelResolution={500}
+                    speed={1.4}
+                    density={0.25}
+                    flakeSize={0.013}
+                    brightness={0.8}
+                    depthFade={20}
+                    farPlane={20}
+                    direction={125}
+                    variant="square"
+                />
             </div>
 
             {/* Your $2M UI untouched */}

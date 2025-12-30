@@ -9,8 +9,7 @@ import SplitText from "@/components/SplitText";
 import Aurora from '@/components/Aurora';
 import "./pixelSnow.css"
 import { motion } from "framer-motion";
-
-
+import PixelSnow from '@/components/PixelSnow';
 
 // Component added by Ansh - github.com/ansh-dhanani
 
@@ -48,6 +47,9 @@ export default function Home() {
   const blurStrength = resolvedTheme === "light" ? 2 : 3;
   const blurDivs = resolvedTheme === "light" ? 5 : 7;
 
+  const snowColor =
+    resolvedTheme === "light" ? "#9ca3af" : "#ffffff"; // gray-400 in light
+
 
   return (
     <>
@@ -60,11 +62,26 @@ export default function Home() {
           pointerEvents: "none",
         }}
       >
-        {mounted && resolvedTheme !== "light" && (
+        {mounted && !isSmall && resolvedTheme !== "light" && (
           <Aurora
             colorStops={["#5227FF", "#7cff67", "#5227FF"]}
             amplitude={1}
             blend={0.5}
+          />
+        )}
+
+        {mounted && isSmall && resolvedTheme !== "light" && (
+          <PixelSnow
+            color={snowColor}
+            pixelResolution={500}
+            speed={1.4}
+            density={0.25}
+            flakeSize={0.013}
+            brightness={0.8}
+            depthFade={20}
+            farPlane={20}
+            direction={125}
+            variant="square"
           />
         )}
 
