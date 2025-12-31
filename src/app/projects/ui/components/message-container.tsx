@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { trpc } from "@/trpc/react";
 import { MessageCard } from "./message-card";
 import { MessageForm } from "./message-form";
@@ -28,7 +28,7 @@ export const MessageContainer = ({
     );
 
     // ✅ GUARANTEE ARRAY
-    const messages = Array.isArray(data) ? data : [];
+    const messages = useMemo(() => Array.isArray(data) ? data : [], [data]);
 
     useEffect(() => {
         const lastAssistantMessage = [...messages]

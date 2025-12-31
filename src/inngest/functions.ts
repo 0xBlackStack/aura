@@ -3,7 +3,6 @@ import {
     createAgent,
     createTool,
     createNetwork,
-    Tool,
     Message,
     createState,
 } from "@inngest/agent-kit";
@@ -18,7 +17,7 @@ import { logEvent } from "@/lib/logger";
 /* -------------------- TYPES -------------------- */
 
 type LLMOverrides = {
-    max_tokens?: number;
+    maxTokens?: number;
     temperature?: number;
 };
 
@@ -108,11 +107,7 @@ export const codeAgentFunction = inngest.createFunction(
                 baseUrl: "https://openrouter.ai/api/v1",
                 apiKey: requireOpenRouterKey(),
                 model: lockedOpenRouterModel,
-                defaultParameters: {
-                    max_tokens: 8000,
-                    temperature: 0.2,
-                    ...extra,
-                },
+                ...extra,
             });
         }
 
@@ -128,10 +123,6 @@ export const codeAgentFunction = inngest.createFunction(
                         baseUrl: "https://api.groq.com/openai/v1",
                         apiKey: getGroqKey(),
                         model,
-                        defaultParameters: {
-                            max_tokens: 8000,
-                            temperature: 0.2,
-                        },
                     });
                 } catch (e) {
                     groqDownUntil = Date.now() + 60_000;
@@ -252,7 +243,7 @@ export const codeAgentFunction = inngest.createFunction(
         const iterEstimator = createAgent({
             name: "iteration-estimator",
             system: "Return ONLY a number between 10 and 60.",
-            model: openRouterLLM({ max_tokens: 256, temperature: 0.1 }),
+            model: openRouterLLM({ maxTokens: 256, temperature: 0.1 }),
         });
 
         let maxIter = 60;
@@ -290,13 +281,13 @@ export const codeAgentFunction = inngest.createFunction(
         const titleAgent = createAgent({
             name: "title",
             system: FRAGMENT_TITLE_PROMPT,
-            model: openRouterLLM({ max_tokens: 64 }),
+            model: openRouterLLM({ maxTokens: 64 }),
         });
 
         const responseAgent = createAgent({
             name: "response",
             system: RESPONSE_PROMPT,
-            model: openRouterLLM({ max_tokens: 512 }),
+            model: openRouterLLM({ maxTokens: 512 }),
         });
 
         const { output: title } = await titleAgent.run(result.state.data.summary);

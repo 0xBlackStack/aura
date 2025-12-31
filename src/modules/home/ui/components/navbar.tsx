@@ -6,7 +6,6 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, useAuth } from "@clerk
 
 import { Button } from "@/components/ui/button";
 import { UserControl } from "@/components/user-control";
-import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
 import { Toggle } from "@/components/ui/toggle";
 import { Crown, Moon, Sun } from "lucide-react";
@@ -16,7 +15,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const NavBar = () => {
-    const isScrolled = useScroll();
     const { setTheme, theme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const router = useRouter();

@@ -35,7 +35,7 @@ export default function Home() {
     ) {
       toast.info("We recommand to use our website in dark theme.");
     }
-  }, []);
+  }, [resolvedTheme]);
   const [isSmall, setIsSmall] = useState(false);
 
   useEffect(() => {
