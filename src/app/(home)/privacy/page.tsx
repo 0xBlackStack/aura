@@ -5,7 +5,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import SplitText from "@/components/SplitText";
 import Aurora from '@/components/Aurora';
-import "../pixelSnow.css"
+import "../../pixelSnow.css"
 import PixelSnow from '@/components/PixelSnow';
 
 
